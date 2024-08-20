@@ -18,7 +18,7 @@ export default function Header() {
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 -mb-px">
           <h1 className="text-2xl md:text-3xl text-slate-800 dark:text-slate-100 font-bold mb-1">
-            What's Next
+            What's Next Life Coach
           </h1>
 
           <div className="flex">

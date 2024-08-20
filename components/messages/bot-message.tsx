@@ -109,7 +109,7 @@ function BotMessage({
             questions?.length > 0 &&
             questions?.map((question, index) => (
               <div
-                className="rounded h-full bg-slate-500 text-slate-100 pl-2 pr-2"
+                className="rounded h-full bg-slate-500 text-slate-100 hover:bg-slate-600 pl-2 pr-2"
                 key={index}
               >
                 <button

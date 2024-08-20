@@ -19,7 +19,6 @@ export default function MessagesBody() {
     if (messages.length > 1) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
-    console.log(messages);
   }, [messages]);
 
   useEffect(() => {
@@ -39,26 +38,6 @@ export default function MessagesBody() {
     chatSelected && setMessages(chatSelected.messages);
     chatSelected && setThreadId(chatSelected.threadId);
   }, [chatSelected]);
-
-  // useEffect(() => {
-  //   const createThread = async () => {
-  //     const res = await fetch(`/api/assistants/threads`, {
-  //       method: "POST",
-  //     });
-  //     const data = await res.json();
-  //     setThreadId(data.threadId);
-  //     const newchat = {
-  //       threadId: data.threadId,
-  //       title: "Identifying Passions: What's Next?",
-  //       messages: [{ role: "assistant", text: "Welcome!!!" }],
-  //     };
-  //     chats
-  //       ? localStorage.setItem("chats", JSON.stringify([...chats, newchat]))
-  //       : localStorage.setItem("chats", JSON.stringify([newchat]));
-  //     chats ? setChats((chats) => [...chats, newchat]) : setChats([newchat]);
-  //   };
-  //   !chatSelected ? createThread() : setThreadId(chatSelected.threadId);
-  // }, []);
 
   const sendMessage = async (text) => {
     const response = await fetch(
@@ -113,9 +92,7 @@ export default function MessagesBody() {
 
   useEffect(() => {
     const NewChats = chats.map((chatI) => {
-      console.log(chatI);
       if (chatI.threadId === threadId) {
-        console.log(threadId);
         return {
           ...chatI,
           messages: messages,
@@ -168,7 +145,7 @@ export default function MessagesBody() {
   };
 
   return (
-    <div className="flex h-full grow flex-col transition-transform duration-300 ease-in-out md:translate-x-0">
+    <div className="flex h-full grow flex-col transition-transform duration-300 ease-in-out md:translate-x-0 w-full">
       <div className="h-full grow px-4 py-6 sm:px-6 md:px-5">
         {/* Chat msg */}
         {messages.map((message, index: number) => {
@@ -187,7 +164,24 @@ export default function MessagesBody() {
         })}
         <div ref={messagesEndRef} aria-hidden="true" />
       </div>
-      <div className="sticky bottom-0">
+      <div className="sticky bottom-0 w-full">
+        {messages.length > 2 && (
+          <div className="flex flex-wrap gap-2 py-2 px-4 bg-transparent">
+            {["Ok next", "Start the questions", "Thought starter"].map(
+              (option, index) => (
+                <button
+                  key={index}
+                  className="btn bg-slate-500 text-slate-100  hover:bg-slate-600"
+                  onClick={() => handleSubmission(option)}
+                  disabled={inputDisabled}
+                >
+                  {option}
+                </button>
+              )
+            )}
+          </div>
+        )}
+
         <div className="flex h-16 items-center justify-between border-t border-slate-200 bg-white px-4 dark:border-slate-700 dark:bg-slate-900 sm:px-6 md:px-5">
           {/* Message input */}
           <div className="flex grow">
@@ -197,7 +191,7 @@ export default function MessagesBody() {
               </label>
               <input
                 id="message-input"
-                className="form-input w-full border-transparent bg-slate-100 placeholder-slate-500 focus:bg-white dark:border-transparent dark:bg-slate-800 dark:focus:bg-slate-800 p-1"
+                className="form-input w-full bg-slate-100 dark:bg-slate-800 border-transparent dark:border-transparent focus:bg-white dark:focus:bg-slate-800 placeholder-slate-500"
                 type="text"
                 placeholder=" Ask something"
                 value={messageInput}
@@ -217,7 +211,7 @@ export default function MessagesBody() {
               }}
               disabled={messageInput === "" || inputDisabled}
               type="submit"
-              className="btn whitespace-nowrap rounded bg-indigo-500 px-1 text-white hover:bg-indigo-600"
+              className="btn bg-indigo-500 hover:bg-indigo-600 text-white whitespace-nowrap"
             >
               Send -&gt;
             </button>

@@ -25,7 +25,8 @@ export const ChatsProvider = ({
 
   useEffect(() => {
     const LocalChats = localStorage.getItem("chats");
-    LocalChats && setChats(JSON.parse(LocalChats));
+    LocalChats ? setChats(JSON.parse(LocalChats)) : newChat();
+    LocalChats && setChatSelected(JSON.parse(LocalChats)[0]);
   }, []);
 
   const newChat = async () => {
@@ -35,33 +36,27 @@ export const ChatsProvider = ({
     const data = await res.json();
     const newchat = {
       threadId: data.threadId,
-      title: "Identifying Passions: What's Next?",
+      title: "What's Next life Coach",
       messages: [{ role: "assistant", text: "Welcome!!!" }],
     };
-    chats
-      ? localStorage.setItem("chats", JSON.stringify([...chats, newchat]))
-      : localStorage.setItem("chats", JSON.stringify([newchat]));
-    chats ? setChats((chats) => [...chats, newchat]) : setChats([newchat]);
+    localStorage.setItem("chats", JSON.stringify([newchat]));
+    setChats([newchat]);
     setChatSelected(newchat);
   };
 
   const clearChat = async () => {
-    setChatSelected((chatSelect) => ({
-      ...chatSelect,
-      messages: [{ role: "assistant", text: "Welcome!!!" }],
-    }));
-    const NewChats = chats.map((chatI) => {
-      console.log(chatI);
-      if (chatI.threadId === chatSelected?.threadId) {
-        return {
-          ...chatI,
-          messages: [{ role: "assistant", text: "Welcome!!!" }],
-        };
-      } else {
-        return chatI;
-      }
+    const res = await fetch(`/api/assistants/threads`, {
+      method: "POST",
     });
-    setChats(NewChats);
+    const data = await res.json();
+    const newchat = {
+      threadId: data.threadId,
+      title: chatSelected?.title || "What's Next life Coach",
+      messages: [{ role: "assistant", text: "Welcome!!!" }],
+    };
+    localStorage.setItem("chats", JSON.stringify([newchat]));
+    setChats([newchat]);
+    setChatSelected(newchat);
   };
 
   return (

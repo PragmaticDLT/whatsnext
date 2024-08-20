@@ -3,17 +3,10 @@ import { useChatsContext } from "../../app/chats-context";
 import { useEffect, useState } from "react";
 
 export default function DirectMessages() {
-  const { chats, chatSelected, setChatSelected, newChat } = useChatsContext();
-  useEffect(() => {}, [chats]);
+  const { chats } = useChatsContext();
   return (
     <div className="my-4">
-      <button
-        className="justify-between w-full p-1 rounded bg-indigo-500/30 mb-1 text-center text-slate-300"
-        onClick={() => newChat()}
-      >
-        new chat
-      </button>
-      <ul className="mb-6">
+      <ul className="mb-4">
         {chats &&
           chats?.map((chat) => <ChatItem chat={chat} key={chat.threadId} />)}
       </ul>
@@ -45,7 +38,7 @@ const ChatItem = ({ chat }) => {
     <li className="mb-1">
       <div className="flex items-center justify-between w-full p-1 rounded bg-indigo-500/30">
         {isInput ? (
-          <div>
+          <div className="flex items-end flex-col gap-1">
             <input
               type="text"
               value={chatInput}
@@ -53,7 +46,7 @@ const ChatItem = ({ chat }) => {
               className="text-sm font-medium"
             />
             <button
-              className="flex items-center ml-2 text-slate-300"
+              className="btn bg-indigo-500 hover:bg-indigo-600 text-white flex items-center ml-2"
               onClick={() => {
                 setIsInput(false);
                 saveMessage();

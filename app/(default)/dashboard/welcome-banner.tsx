@@ -1,6 +1,6 @@
 export default function WelcomeBanner() {
   return (
-    <div className="relative bg-indigo-200 dark:bg-indigo-500 p-4 sm:p-6 rounded-sm overflow-hidden mb-8">
+    <div className="relative bg-indigo-200 dark:bg-indigo-500 p-4 sm:p-6 rounded-sm overflow-hidden mb-8 mx-4">
       {/* Background illustration */}
       <div
         className="absolute right-0 top-0 -mt-4 mr-16 pointer-events-none hidden xl:block"
