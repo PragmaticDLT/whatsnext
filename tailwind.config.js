@@ -46,6 +46,7 @@ module.exports = {
       addVariant('sidebar-expanded', ({ modifySelectors, separator }) => {
         modifySelectors(({ className }) => `.sidebar-expanded .${e(`sidebar-expanded${separator}${className}`)}`);
       });
-    }),    
+    }),
+    require('tailwind-scrollbar-hide')
   ],
 };

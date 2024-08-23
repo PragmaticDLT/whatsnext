@@ -144,6 +144,38 @@ export default function MessagesBody() {
   const handleReadableStream = (stream: AssistantStream) => {
     stream.on("textDelta", handleTextDelta);
     stream.on("event", (event) => {
+      if (event.event === "thread.run.failed") {
+        console.log(event);
+        if (event.data.last_error.code === "rate_limit_exceeded") {
+          setMessages((prevMessages) => {
+            // Remove the last assistant message
+            const newMessages = prevMessages.slice(0, -1);
+            // Add an error message
+            return [
+              ...newMessages,
+              {
+                role: "assistant",
+                text: "Wow, you type really fast! Please take a minute and try again later.",
+              },
+            ];
+          });
+        } else {
+          setMessages((prevMessages) => {
+            // Remove the last assistant message
+            const newMessages = prevMessages.slice(0, -1);
+            // Add an error message
+            return [
+              ...newMessages,
+              {
+                role: "assistant",
+                text: "An error occurred while processing your message. Please try again later.",
+              },
+            ];
+          });
+        }
+
+        setInputDisabled(false);
+      }
       if (event.event === "thread.message.completed")
         handleMessageCompleted(event);
       if (event.event === "thread.run.completed") handleRunCompleted(event);
@@ -287,7 +319,7 @@ export default function MessagesBody() {
     "ok next": "OK next",
     "start the questions": "Start the questions",
     "ok i'm ready": "OK I'm ready",
-    "ok i’m ready": "OK I'm ready",
+    "ok i'm ready": "OK I'm ready",
     next: "Next",
     done: "Done",
     "explore other options": "Explore other options",
@@ -395,7 +427,7 @@ export default function MessagesBody() {
               </label>
               <textarea
                 id="message-input"
-                className="form-textarea w-full bg-slate-100 dark:bg-slate-800 border-transparent dark:border-transparent focus:bg-white dark:focus:bg-slate-800 placeholder-slate-500 resize-none overflow-hidden"
+                className="form-textarea w-full bg-slate-100 dark:bg-slate-800 border-transparent dark:border-transparent focus:bg-white dark:focus:bg-slate-800 placeholder-slate-500 resize-none overflow-y-auto scrollbar-hide"
                 placeholder=" Ask something"
                 value={messageInput}
                 onChange={(e) => {
@@ -404,16 +436,6 @@ export default function MessagesBody() {
                 }}
                 disabled={inputDisabled}
                 ref={InputRef}
-                onKeyDown={(event) => {
-                  if (
-                    event.key === "Enter" &&
-                    !event.shiftKey &&
-                    messageInput.trim() !== ""
-                  ) {
-                    event.preventDefault();
-                    handleSubmission(messageInput);
-                  }
-                }}
                 rows={1}
                 style={{ minHeight: "2.5rem", maxHeight: "10rem" }}
               />
