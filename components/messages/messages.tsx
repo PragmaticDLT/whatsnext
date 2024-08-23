@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import BotMessage from "./bot-message";
 import UserMessage from "./user-message";
 import { generateId } from "ai";
@@ -8,13 +8,26 @@ import { AssistantStream } from "openai/lib/AssistantStream.mjs";
 import { useChatsContext } from "../../app/chats-context";
 
 export default function MessagesBody() {
-  const { chats, setChats, chatSelected, setChatSelected } = useChatsContext();
+  const {
+    chats,
+    setChats,
+    chatSelected,
+    assistantId,
+    setAssistantId,
+    currentQuestionNumber,
+    setCurrentQuestionNumber,
+    quotedTexts,
+    setQuotedTexts,
+    activeButtons,
+    setActiveButtons,
+  } = useChatsContext();
   const [messageInput, setMessageInput] = useState("");
   const [inputDisabled, setInputDisabled] = useState(false);
   const [messages, setMessages] = useState<any[]>([]);
   const [threadId, setThreadId] = useState("");
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const InputRef = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
     if (messages.length > 1) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -34,27 +47,85 @@ export default function MessagesBody() {
       : setMessages(chatSelected.messages);
   }, [chatSelected]);
 
+  const setFunctionalities = () => {
+    if (chatSelected) {
+      setMessages(chatSelected.messages);
+      setThreadId(chatSelected.threadId);
+      checkForLastQuestionNumber(
+        chatSelected.messages[chatSelected.messages.length - 1].text
+      );
+      extractQuotedTexts(
+        chatSelected.messages[chatSelected.messages.length - 1].text
+      );
+    }
+  };
+
   useEffect(() => {
-    chatSelected && setMessages(chatSelected.messages);
-    chatSelected && setThreadId(chatSelected.threadId);
+    setFunctionalities();
   }, [chatSelected]);
 
-  const sendMessage = async (text) => {
-    const response = await fetch(
-      `/api/assistants/threads/${threadId}/messages`,
-      {
-        method: "POST",
-        body: JSON.stringify({
-          content: text,
-        }),
-      }
+  useEffect(() => {
+    const newActiveButtons = Object.keys(buttonOptions).filter((key) =>
+      quotedTexts.includes(key.toLowerCase())
     );
-    const stream = AssistantStream.fromReadableStream(response.body);
-    handleReadableStream(stream);
+    setActiveButtons(newActiveButtons);
+  }, [quotedTexts]);
+
+  const sendMessage = async (
+    text: string,
+    assistantIdPreview: string | null
+  ) => {
+    try {
+      const response = await fetch(
+        `/api/assistants/threads/${threadId}/messages`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            content: text,
+            assistant_id: assistantIdPreview || assistantId,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to send message");
+      }
+
+      const stream = AssistantStream.fromReadableStream(response.body);
+      handleReadableStream(stream);
+    } catch (error) {
+      console.error("Error sending message:", error);
+      setMessages((prevMessages) => {
+        // Remove the last assistant message
+        const newMessages = prevMessages.slice(0, -1);
+        // Add an error message
+        return [
+          ...newMessages,
+          {
+            role: "assistant",
+            text: "An error occurred while processing your message. Please try again.",
+          },
+        ];
+      });
+      setInputDisabled(false);
+    }
   };
 
   const handleSubmission = (question) => {
-    sendMessage(question || messageInput);
+    setQuotedTexts([]);
+    if (
+      question === "Begin Step 2" ||
+      question === "begin step 2" ||
+      question === "Begin step 2"
+    ) {
+      sendMessage(
+        question || messageInput,
+        process.env.NEXT_PUBLIC_3_ASSISTANT_ID || ""
+      );
+      changeAssistant3();
+    } else {
+      sendMessage(question || messageInput, null);
+    }
     setMessages((prevMessages) => [
       ...prevMessages,
       { role: "user", text: question || messageInput },
@@ -63,6 +134,12 @@ export default function MessagesBody() {
     setMessageInput("");
     setInputDisabled(true);
   };
+
+  useEffect(() => {
+    if (messageInput.length <= 0) {
+      adjustTextareaHeight();
+    }
+  }, [messageInput]);
 
   const handleReadableStream = (stream: AssistantStream) => {
     stream.on("textDelta", handleTextDelta);
@@ -73,9 +150,41 @@ export default function MessagesBody() {
     });
   };
 
+  const changeAssistant2 = () => {
+    setCurrentQuestionNumber(15);
+    setAssistantId(process.env.NEXT_PUBLIC_2_ASSISTANT_ID || "");
+    localStorage.setItem("currentQuestionNumber", "15");
+    localStorage.setItem(
+      "assistantId",
+      process.env.NEXT_PUBLIC_2_ASSISTANT_ID || ""
+    );
+  };
+
+  const changeAssistant3 = () => {
+    setAssistantId(process.env.NEXT_PUBLIC_3_ASSISTANT_ID || "");
+    localStorage.setItem(
+      "assistantId",
+      process.env.NEXT_PUBLIC_3_ASSISTANT_ID || ""
+    );
+  };
+
+  useEffect(() => {
+    if (activeButtons.includes("begin step 2")) {
+    }
+  }, [activeButtons]);
+
   const handleMessageCompleted = async (event) => {
     setInputDisabled(false);
+
+    currentQuestionNumber < 14
+      ? checkForLastQuestionNumber(event.data.content[0].text.value)
+      : currentQuestionNumber == 14
+      ? changeAssistant2()
+      : null;
+    // Clear quoted texts for the next message
+    extractQuotedTexts(event.data.content[0].text.value);
   };
+
   const handleRunCompleted = async (event) => {
     setInputDisabled(false);
   };
@@ -87,6 +196,36 @@ export default function MessagesBody() {
     }
     if (delta.annotations != null) {
       annotateLastMessage(delta.annotations);
+    }
+  };
+
+  const checkForLastQuestionNumber = (text: string) => {
+    const matches = text.match(/Question (\d+):/g);
+    if (matches) {
+      const lastMatch = matches[matches.length - 1];
+      const questionNumber = parseInt(lastMatch.match(/(\d+)/)[0], 10);
+      setCurrentQuestionNumber(questionNumber);
+      localStorage.setItem("currentQuestionNumber", questionNumber.toString());
+
+      // Call changeAssistant2 if there are multiple matches
+      if (matches.length > 1) {
+        changeAssistant2();
+      }
+    }
+  };
+
+  const removeSpecialCharacters = (text: string) => {
+    return text.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "");
+  };
+
+  const extractQuotedTexts = (text: string) => {
+    const regex = /"([^"]*)"/g;
+    const matches = text.match(regex);
+    if (matches) {
+      const newQuotedTexts = matches.map((match) =>
+        removeSpecialCharacters(match.slice(1, -1).toLowerCase())
+      );
+      setQuotedTexts((prevTexts) => [...prevTexts, ...newQuotedTexts]);
     }
   };
 
@@ -144,6 +283,26 @@ export default function MessagesBody() {
     });
   };
 
+  const buttonOptions = {
+    "ok next": "OK next",
+    "start the questions": "Start the questions",
+    "ok i'm ready": "OK I'm ready",
+    "ok i’m ready": "OK I'm ready",
+    next: "Next",
+    done: "Done",
+    "explore other options": "Explore other options",
+    "looks good": "Looks Good",
+    "begin step 2": "Begin Step 2",
+    regenerate: "Regenerate",
+  };
+
+  const adjustTextareaHeight = () => {
+    if (InputRef?.current) {
+      InputRef.current.style.height = "auto";
+      InputRef.current.style.height = `${InputRef.current.scrollHeight}px`;
+    }
+  };
+
   return (
     <div className="flex h-full grow flex-col transition-transform duration-300 ease-in-out md:translate-x-0 w-full">
       <div className="h-full grow px-4 py-6 sm:px-6 md:px-5">
@@ -167,54 +326,112 @@ export default function MessagesBody() {
       <div className="sticky bottom-0 w-full">
         {messages.length > 2 && (
           <div className="flex flex-wrap gap-2 py-2 px-4 bg-transparent">
-            {["Ok next", "Start the questions", "Thought starter"].map(
-              (option, index) => (
-                <button
-                  key={index}
-                  className="btn bg-slate-500 text-slate-100  hover:bg-slate-600"
-                  onClick={() => handleSubmission(option)}
-                  disabled={inputDisabled}
-                >
-                  {option}
-                </button>
-              )
+            {activeButtons.map((key) => (
+              <button
+                key={key}
+                className="btn bg-slate-500 text-slate-100 hover:bg-slate-600"
+                onClick={() => handleSubmission(buttonOptions[key])}
+                disabled={inputDisabled}
+              >
+                {buttonOptions[key]}
+              </button>
+            ))}
+            {(quotedTexts.includes("thought starter") ||
+              (currentQuestionNumber <= 14 && currentQuestionNumber >= 1)) && (
+              <button
+                className="btn bg-slate-500 text-slate-100 hover:bg-slate-600"
+                onClick={() =>
+                  handleSubmission(buttonOptions["thought starter"])
+                }
+                disabled={inputDisabled}
+              >
+                Thought starter
+              </button>
             )}
           </div>
         )}
+        {/*TESTING*/}
+        {/* <div className="sticky top-0 bg-white dark:bg-slate-900 p-2 text-center">
+          Current Question: {currentQuestionNumber}
+        </div>
+        <div className="sticky top-8 bg-white dark:bg-slate-900 p-2 text-center">
+          Quoted Texts: {quotedTexts.join(", ")}
+        </div>
+        <div className="sticky top-0 bg-white dark:bg-slate-900 p-2 text-center">
+          Current Bot: {assistantId}
+        </div>
+        <div className="flex flex-row gap-2">
+          <button
+            className="btn bg-slate-500 text-slate-100 hover:bg-slate-600"
+            onClick={() =>
+              setAssistantId(process.env.NEXT_PUBLIC_1_ASSISTANT_ID || "")
+            }
+          >
+            bot 1
+          </button>
+          <button
+            className="btn bg-slate-500 text-slate-100 hover:bg-slate-600"
+            onClick={() =>
+              setAssistantId(process.env.NEXT_PUBLIC_2_ASSISTANT_ID || "")
+            }
+          >
+            bot 2
+          </button>
+          <button
+            className="btn bg-slate-500 text-slate-100 hover:bg-slate-600"
+            onClick={() =>
+              setAssistantId(process.env.NEXT_PUBLIC_3_ASSISTANT_ID || "")
+            }
+          >
+            bot 3
+          </button>
+        </div> */}
 
-        <div className="flex h-16 items-center justify-between border-t border-slate-200 bg-white px-4 dark:border-slate-700 dark:bg-slate-900 sm:px-6 md:px-5">
+        <div className="flex min-h-16 items-center justify-between border-t border-slate-200 bg-white px-4 dark:border-slate-700 dark:bg-slate-900 sm:px-6 md:px-5 py-2">
           {/* Message input */}
           <div className="flex grow">
             <div className="mr-3 grow">
               <label htmlFor="message-input" className="sr-only">
                 Type a message
               </label>
-              <input
+              <textarea
                 id="message-input"
-                className="form-input w-full bg-slate-100 dark:bg-slate-800 border-transparent dark:border-transparent focus:bg-white dark:focus:bg-slate-800 placeholder-slate-500"
-                type="text"
+                className="form-textarea w-full bg-slate-100 dark:bg-slate-800 border-transparent dark:border-transparent focus:bg-white dark:focus:bg-slate-800 placeholder-slate-500 resize-none overflow-hidden"
                 placeholder=" Ask something"
                 value={messageInput}
-                onChange={(e) => setMessageInput(e.target.value)}
+                onChange={(e) => {
+                  setMessageInput(e.target.value);
+                  adjustTextareaHeight();
+                }}
                 disabled={inputDisabled}
+                ref={InputRef}
                 onKeyDown={(event) => {
-                  if (event.key === "Enter" && messageInput !== "") {
+                  if (
+                    event.key === "Enter" &&
+                    !event.shiftKey &&
+                    messageInput.trim() !== ""
+                  ) {
+                    event.preventDefault();
                     handleSubmission(messageInput);
                   }
                 }}
+                rows={1}
+                style={{ minHeight: "2.5rem", maxHeight: "10rem" }}
               />
             </div>
-            <button
-              onClick={() => {
-                handleSubmission(messageInput);
-                setMessageInput("");
-              }}
-              disabled={messageInput === "" || inputDisabled}
-              type="submit"
-              className="btn bg-indigo-500 hover:bg-indigo-600 text-white whitespace-nowrap"
-            >
-              Send -&gt;
-            </button>
+            <div className="flex">
+              <button
+                onClick={() => {
+                  handleSubmission(messageInput);
+                  setMessageInput("");
+                }}
+                disabled={messageInput === "" || inputDisabled}
+                type="submit"
+                className="btn bg-indigo-500 hover:bg-indigo-600 text-white whitespace-nowrap h-10"
+              >
+                Send -&gt;
+              </button>
+            </div>
           </div>
         </div>
       </div>

@@ -7,7 +7,7 @@ const openai = new OpenAI({
 
 // Send a new message to a thread
 export async function POST(request, { params: { threadId } }) {
-  const { content } = await request.json();
+  const { content, assistant_id } = await request.json();
 
   await openai.beta.threads.messages.create(threadId, {
     role: "user",
@@ -15,8 +15,7 @@ export async function POST(request, { params: { threadId } }) {
   });
 
   const stream = openai.beta.threads.runs.stream(threadId, {
-    assistant_id:
-      process.env.OPENAI_ASSISTANT_ID || "asst_TGTEPCzsIuC3W4RxctmxVzoh",
+    assistant_id: assistant_id,
   });
 
   return new Response(stream.toReadableStream());

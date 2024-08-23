@@ -9,6 +9,14 @@ interface ChatsContextProps {
   setChatSelected: (chatsOpen: any) => void;
   newChat: any;
   clearChat: any;
+  assistantId: string;
+  setAssistantId: (assistantId: string) => void;
+  currentQuestionNumber: number;
+  setCurrentQuestionNumber: (currentQuestionNumber: number) => void;
+  quotedTexts: string[];
+  setQuotedTexts: (quotedTexts: string[]) => void;
+  activeButtons: string[];
+  setActiveButtons: (activeButtons: string[]) => void;
 }
 
 const ChatsContext = createContext<ChatsContextProps | undefined>(undefined);
@@ -23,10 +31,26 @@ export const ChatsProvider = ({
   const [chats, setChats] = useState(initialState);
   const [chatSelected, setChatSelected] = useState();
 
+  const [assistantId, setAssistantId] = useState(
+    process.env.NEXT_PUBLIC_1_ASSISTANT_ID || ""
+  );
+  const [currentQuestionNumber, setCurrentQuestionNumber] = useState(0);
+  const [quotedTexts, setQuotedTexts] = useState<string[]>([]);
+  const [activeButtons, setActiveButtons] = useState<string[]>([]);
+
   useEffect(() => {
     const LocalChats = localStorage.getItem("chats");
     LocalChats ? setChats(JSON.parse(LocalChats)) : newChat();
     LocalChats && setChatSelected(JSON.parse(LocalChats)[0]);
+    const currentQuestionNumber = localStorage.getItem("currentQuestionNumber");
+    if (currentQuestionNumber) {
+      setCurrentQuestionNumber(parseInt(currentQuestionNumber, 10));
+    }
+    setAssistantId(
+      localStorage.getItem("assistantId") ||
+        process.env.NEXT_PUBLIC_1_ASSISTANT_ID ||
+        ""
+    );
   }, []);
 
   const newChat = async () => {
@@ -57,6 +81,12 @@ export const ChatsProvider = ({
     localStorage.setItem("chats", JSON.stringify([newchat]));
     setChats([newchat]);
     setChatSelected(newchat);
+    setAssistantId(process.env.NEXT_PUBLIC_1_ASSISTANT_ID || "");
+    setCurrentQuestionNumber(0);
+    setQuotedTexts([]);
+    setActiveButtons([]);
+    localStorage.removeItem("currentQuestionNumber");
+    localStorage.removeItem("assistantId");
   };
 
   return (
@@ -68,6 +98,14 @@ export const ChatsProvider = ({
         setChatSelected,
         newChat,
         clearChat,
+        assistantId,
+        setAssistantId,
+        currentQuestionNumber,
+        setCurrentQuestionNumber,
+        quotedTexts,
+        setQuotedTexts,
+        activeButtons,
+        setActiveButtons,
       }}
     >
       {children}
