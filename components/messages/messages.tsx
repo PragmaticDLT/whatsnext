@@ -336,13 +336,12 @@ export default function MessagesBody() {
                 {buttonOptions[key]}
               </button>
             ))}
-            {(quotedTexts.includes("thought starter") ||
+            {((quotedTexts.includes("thought starter") &&
+              messages.length > 4) ||
               (currentQuestionNumber <= 14 && currentQuestionNumber >= 1)) && (
               <button
                 className="btn bg-slate-500 text-slate-100 hover:bg-slate-600"
-                onClick={() =>
-                  handleSubmission(buttonOptions["thought starter"])
-                }
+                onClick={() => handleSubmission("Thought starter")}
                 disabled={inputDisabled}
               >
                 Thought starter
