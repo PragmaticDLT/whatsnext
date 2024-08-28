@@ -24,18 +24,18 @@ export default function Dashboard() {
               setIsOpen(true);
             }}
           >
-            Clear Chat
+            Start from beginning
           </button>
         </div>
       )}
       {chatSelected && <MessagesBody />}
       <ModalBasic
-        title="Are you sure you want to clear the chat?"
+        title="Are you sure you want to start from the beginning?"
         isOpen={isOpen}
         setIsOpen={setIsOpen}
       >
         <div className="flex flex-col m-4">
-          <p>This action cannot be undone.</p>
+          <p>This action will delete the chat history and cannot be undone.</p>
 
           <div className="flex flex-row mt-4 flex-end gap-2">
             <button

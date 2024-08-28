@@ -5,6 +5,9 @@ import "react-responsive-carousel/lib/styles/carousel.min.css";
 import { Carousel } from "react-responsive-carousel";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkBreaks from "remark-breaks";
+import "./styles.css";
+
 interface BotMessageProps {
   text?: ReactNode;
   activeQuestions?: boolean;
@@ -68,7 +71,7 @@ function BotMessage({
             ) : (
               <Markdown
                 urlTransform={(url) => url}
-                remarkPlugins={[remarkGfm]}
+                remarkPlugins={[remarkBreaks, remarkGfm]}
                 components={{
                   table: ({ children, ...props }) => (
                     <table className="my-4" {...props}>
@@ -90,7 +93,7 @@ function BotMessage({
                   ),
                 }}
               >
-                {text}
+                {text?.replace(/\n/gi, "\n &nbsp;")}
               </Markdown>
             )}
           </div>

@@ -1,9 +1,10 @@
-import { ReactNode } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkBreaks from "remark-breaks";
 
+import "./styles.css";
 interface UserMessageProps {
-  text?: ReactNode;
+  text?: string;
 }
 
 function UserMessage({ text }: UserMessageProps) {
@@ -13,7 +14,7 @@ function UserMessage({ text }: UserMessageProps) {
         <div className="mb-1 rounded rounded-tr-none border border-transparent bg-indigo-500 p-3 text-sm text-white shadow-md">
           <Markdown
             urlTransform={(url) => url}
-            remarkPlugins={[remarkGfm]}
+            remarkPlugins={[remarkGfm, remarkBreaks]}
             components={{
               table: ({ children, ...props }) => (
                 <table className="my-4" {...props}>
@@ -35,7 +36,7 @@ function UserMessage({ text }: UserMessageProps) {
               ),
             }}
           >
-            {text}
+            {text?.replace(/\n/gi, "\n &nbsp;")}
           </Markdown>
         </div>
         <div className="flex items-center justify-between"></div>
