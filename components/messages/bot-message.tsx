@@ -12,6 +12,7 @@ interface BotMessageProps {
   text?: ReactNode;
   activeQuestions?: boolean;
   handleSendMessage: (message: string) => void;
+  downloadPDF: () => void;
 }
 const questions = [{ question: "Let's Get Started!" }];
 
@@ -19,6 +20,7 @@ function BotMessage({
   text,
   activeQuestions,
   handleSendMessage,
+  downloadPDF,
 }: BotMessageProps) {
   return (
     <>
@@ -132,6 +134,16 @@ function BotMessage({
               </div>
             ))}
         </Carousel>
+        {text?.includes("Finalized What’s Next Intention Statement") && (
+          <button
+            className="btn bg-green-500 text-white hover:bg-green-600"
+            onClick={() => {
+              downloadPDF(text);
+            }}
+          >
+            Download PDF
+          </button>
+        )}
       </div>
     </>
   );

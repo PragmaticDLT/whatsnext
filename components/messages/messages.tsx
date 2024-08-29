@@ -15,6 +15,9 @@ import {
   addMinutes,
   parse,
 } from "date-fns";
+import { saveAs } from "file-saver";
+import { jsPDF } from "jspdf";
+import { marked } from "marked";
 
 export default function MessagesBody() {
   const {
@@ -34,6 +37,7 @@ export default function MessagesBody() {
   const [inputDisabled, setInputDisabled] = useState(false);
   const [messages, setMessages] = useState<any[]>([]);
   const [threadId, setThreadId] = useState("");
+  const [showDownloadPDF, setShowDownloadPDF] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const InputRef = useRef<HTMLTextAreaElement>(null);
@@ -217,13 +221,23 @@ export default function MessagesBody() {
   const handleMessageCompleted = async (event) => {
     setInputDisabled(false);
 
+    const messageText = event.data.content[0].text.value;
+
+    if (
+      messageText.includes(
+        "Here's where you'll finalize your What's Next intention in the chosen life area that you've decided on."
+      )
+    ) {
+      setShowDownloadPDF(true);
+    }
+
     currentQuestionNumber < 14
-      ? checkForLastQuestionNumber(event.data.content[0].text.value)
+      ? checkForLastQuestionNumber(messageText)
       : currentQuestionNumber == 14
       ? changeAssistant2()
       : null;
-    // Clear quoted texts for the next message
-    extractQuotedTexts(event.data.content[0].text.value);
+
+    extractQuotedTexts(messageText);
   };
 
   const handleRunCompleted = async (event) => {
@@ -420,6 +434,27 @@ export default function MessagesBody() {
     );
   };
 
+  const downloadPDF = (text: string) => {
+    const doc = new jsPDF();
+    const html = marked(text);
+
+    doc.setFontSize(12);
+
+    doc.html(html, {
+      callback: function (doc) {
+        doc.save("whats_next_intention.pdf");
+      },
+      x: 10,
+      y: 10,
+      html2canvas: {
+        scale: 0.3,
+      },
+      autoPaging: "text",
+      width: 100,
+      windowWidth: 600,
+    });
+  };
+
   return (
     <div className="flex h-full grow flex-col transition-transform duration-300 ease-in-out md:translate-x-0 w-full">
       <div className="h-full grow px-4 py-6 sm:px-6 md:px-5">
@@ -434,6 +469,7 @@ export default function MessagesBody() {
                   text={message.text}
                   activeQuestions={index === 0}
                   handleSendMessage={handleSubmission}
+                  downloadPDF={downloadPDF}
                 />
                 {renderTableButtons(message.text)}
               </div>
@@ -468,43 +504,18 @@ export default function MessagesBody() {
             )}
           </div>
         )}
-        {/*TESTING*/}
-        <div className="sticky top-0 bg-white dark:bg-slate-900 p-2 text-center">
-          Current Question: {currentQuestionNumber}
-        </div>
-        <div className="sticky top-8 bg-white dark:bg-slate-900 p-2 text-center">
-          Quoted Texts: {quotedTexts.join(", ")}
-        </div>
-        <div className="sticky top-0 bg-white dark:bg-slate-900 p-2 text-center">
-          Current Bot: {assistantId}
-        </div>
-        <div className="flex flex-row gap-2">
+        {showDownloadPDF && (
           <button
-            className="btn bg-slate-500 text-slate-100 hover:bg-slate-600"
+            className="btn bg-green-500 text-white hover:bg-green-600"
             onClick={() =>
-              setAssistantId(process.env.NEXT_PUBLIC_1_ASSISTANT_ID || "")
+              downloadPDF(
+                "Here's where you'll finalize your What's Next intention in the chosen life area that you've decided on."
+              )
             }
           >
-            bot 1
+            Download PDF
           </button>
-          <button
-            className="btn bg-slate-500 text-slate-100 hover:bg-slate-600"
-            onClick={() =>
-              setAssistantId(process.env.NEXT_PUBLIC_2_ASSISTANT_ID || "")
-            }
-          >
-            bot 2
-          </button>
-          <button
-            className="btn bg-slate-500 text-slate-100 hover:bg-slate-600"
-            onClick={() =>
-              setAssistantId(process.env.NEXT_PUBLIC_3_ASSISTANT_ID || "")
-            }
-          >
-            bot 3
-          </button>
-        </div>
-
+        )}
         <div className="flex min-h-16 items-center justify-between border-t border-slate-200 bg-white px-4 dark:border-slate-700 dark:bg-slate-900 sm:px-6 md:px-5 py-2">
           {/* Message input */}
           <div className="flex grow">
