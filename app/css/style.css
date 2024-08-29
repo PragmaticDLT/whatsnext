@@ -5,4 +5,25 @@
 @import 'additional-styles/utility-patterns.css';
 @import 'additional-styles/flatpickr.css';
 
+
 @import 'tailwindcss/utilities';
+
+@font-face {
+  font-family: 'FT Sterling Trial';
+  src: url('../../public/FTSterlingTrial-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Monorama';
+  src: url('../../public/Monorama-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+body {
+  font-family: 'FT Sterling Trial', sans-serif;
+}

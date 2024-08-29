@@ -7,3 +7,9 @@ ul {
   list-style: disc;
   padding-left: 1rem;
 }
+
+tr,
+td,
+th {
+  border: 1px dashed #555;
+}

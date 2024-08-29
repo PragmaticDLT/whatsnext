@@ -17,7 +17,10 @@ export default function Header() {
     <header className="sticky top-0 bg-white dark:bg-[#182235] border-b border-slate-200 dark:border-slate-700 z-30">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 -mb-px">
-          <h1 className="text-2xl md:text-3xl text-slate-800 dark:text-slate-100 font-bold mb-1">
+          <h1
+            className="text-2xl md:text-3xl text-slate-800 dark:text-slate-100 font-bold mb-1"
+            style={{ fontFamily: "Monorama" }}
+          >
             What's Next Life Coach
           </h1>
 

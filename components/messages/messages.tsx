@@ -6,6 +6,15 @@ import UserMessage from "./user-message";
 import { generateId } from "ai";
 import { AssistantStream } from "openai/lib/AssistantStream.mjs";
 import { useChatsContext } from "../../app/chats-context";
+import {
+  parseISO,
+  addWeeks,
+  setHours,
+  setMinutes,
+  format,
+  addMinutes,
+  parse,
+} from "date-fns";
 
 export default function MessagesBody() {
   const {
@@ -335,6 +344,82 @@ export default function MessagesBody() {
     }
   };
 
+  const createGoogleCalendarEvent = (
+    activity: string,
+    weekOffset: number,
+    dayOfWeek: number,
+    dayName: string,
+    time: string
+  ) => {
+    const startDate = addWeeks(new Date(), weekOffset);
+    const [hour, period] = time.match(/(\d{1,2})(am|pm)/)?.slice(1) || [];
+    const eventHour =
+      parseInt(hour) +
+      (period.toLowerCase() === "pm" && hour !== "12" ? 12 : 0);
+    const eventDate = setHours(setMinutes(startDate, 0), eventHour);
+    const formattedDate = format(eventDate, "yyyyMMdd'T'HHmmss'Z'");
+    const endDate = format(addMinutes(eventDate, 30), "yyyyMMdd'T'HHmmss'Z'");
+    const url = `https://calendar.google.com/calendar/u/0/r/eventedit?text=${encodeURIComponent(
+      activity
+    )}&dates=${formattedDate}/${endDate}`;
+    window.open(url, "_blank");
+  };
+
+  const renderTableButtons = (message: string) => {
+    const tableRegex = /\|\s*Week\s*\|.*?\|/;
+    const tableMatch = message.match(tableRegex);
+    if (!tableMatch) return null;
+
+    const tableStartIndex = message.indexOf(tableMatch[0]);
+    const tableEndIndex = message.indexOf("\n\n", tableStartIndex);
+    const tableContent = message.slice(
+      tableStartIndex,
+      tableEndIndex > -1 ? tableEndIndex : undefined
+    );
+
+    const rows = tableContent.split("\n").slice(2); // Skip header rows
+
+    const dayRegex =
+      /(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\s*\((\d{1,2}(?:am|pm))\)/g;
+    const headerMatch = tableContent.match(dayRegex);
+
+    if (!headerMatch) return null;
+
+    const days = headerMatch.map((day) => {
+      const [, dayName, time] = day.match(/(.*?)\s*\((.*?)\)/) || [];
+      return { dayName, time };
+    });
+
+    return (
+      <div className="grid grid-cols-3 gap-2 mt-4">
+        {rows.map((row, weekIndex) => {
+          const cells = row.split("|").slice(2, -1); // Skip week number and last empty cell
+          return cells.map((cell, dayIndex) => {
+            if (dayIndex >= days.length) return null;
+            const { dayName, time } = days[dayIndex];
+            return (
+              <button
+                key={`${weekIndex}-${dayIndex}`}
+                className="btn bg-indigo-500 text-white hover:bg-indigo-600 text-sm p-2"
+                onClick={() =>
+                  createGoogleCalendarEvent(
+                    cell.trim(),
+                    weekIndex + 1,
+                    dayIndex + 1,
+                    dayName,
+                    time
+                  )
+                }
+              >
+                Schedule: Week {weekIndex + 1}, {dayName} ({time})
+              </button>
+            );
+          });
+        })}
+      </div>
+    );
+  };
+
   return (
     <div className="flex h-full grow flex-col transition-transform duration-300 ease-in-out md:translate-x-0 w-full">
       <div className="h-full grow px-4 py-6 sm:px-6 md:px-5">
@@ -344,12 +429,14 @@ export default function MessagesBody() {
             return <UserMessage key={message.id} text={message?.text} />;
           } else {
             return (
-              <BotMessage
-                key={message.id}
-                text={message.text}
-                activeQuestions={index === 0}
-                handleSendMessage={handleSubmission}
-              />
+              <div key={message.id}>
+                <BotMessage
+                  text={message.text}
+                  activeQuestions={index === 0}
+                  handleSendMessage={handleSubmission}
+                />
+                {renderTableButtons(message.text)}
+              </div>
             );
           }
         })}
@@ -382,7 +469,7 @@ export default function MessagesBody() {
           </div>
         )}
         {/*TESTING*/}
-        {/* <div className="sticky top-0 bg-white dark:bg-slate-900 p-2 text-center">
+        <div className="sticky top-0 bg-white dark:bg-slate-900 p-2 text-center">
           Current Question: {currentQuestionNumber}
         </div>
         <div className="sticky top-8 bg-white dark:bg-slate-900 p-2 text-center">
@@ -416,7 +503,7 @@ export default function MessagesBody() {
           >
             bot 3
           </button>
-        </div> */}
+        </div>
 
         <div className="flex min-h-16 items-center justify-between border-t border-slate-200 bg-white px-4 dark:border-slate-700 dark:bg-slate-900 sm:px-6 md:px-5 py-2">
           {/* Message input */}

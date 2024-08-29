@@ -1,5 +1,5 @@
 import Image from "next/image";
-import User01 from "../../public/images/user-avatar-80.png";
+import User01 from "../../public/images/WNChat.png";
 import { ReactNode } from "react";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import { Carousel } from "react-responsive-carousel";
@@ -71,10 +71,14 @@ function BotMessage({
             ) : (
               <Markdown
                 urlTransform={(url) => url}
-                remarkPlugins={[remarkBreaks, remarkGfm]}
+                remarkPlugins={[remarkGfm, remarkBreaks]}
                 components={{
                   table: ({ children, ...props }) => (
-                    <table className="my-4" {...props}>
+                    <table
+                      className="my-4"
+                      style={{ width: "100%", border: "1px solid #555" }}
+                      {...props}
+                    >
                       {children}
                     </table>
                   ),
@@ -93,7 +97,9 @@ function BotMessage({
                   ),
                 }}
               >
-                {text?.replace(/\n/gi, "\n &nbsp;")}
+                {typeof text === "string" && /\|[-|]+\|/.test(text)
+                  ? text
+                  : text?.replace(/\n/gi, "\n &nbsp;")}
               </Markdown>
             )}
           </div>
