@@ -4,10 +4,14 @@ import MessagesBody from "../../../components/messages/messages";
 import { useChatsContext } from "../../chats-context";
 import ModalBasic from "../../../components/modal-basic";
 import { useState } from "react";
+import useWindowSize from "react-use/lib/useWindowSize";
+import Confetti from "react-confetti";
 
 export default function Dashboard() {
+  const { width, height } = useWindowSize();
   const { chatSelected, clearChat } = useChatsContext();
   const [isOpen, setIsOpen] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
   return (
     <div className="py-8 w-full max-w-[80rem] mx-auto h-full">
       {chatSelected && <WelcomeBanner />}
@@ -28,7 +32,16 @@ export default function Dashboard() {
           </button>
         </div>
       )}
-      {chatSelected && <MessagesBody />}
+      {chatSelected && <MessagesBody setShowConfetti={setShowConfetti} />}
+      {showConfetti && (
+        <div className="fixed top-0 left-0 w-full h-full animate-fade-in-down animate-duration-3000 animate-delay-1000">
+          <Confetti
+            width={width}
+            height={height}
+            className="animate-fade-in-down animate-duration-3000 animate-delay-1000"
+          />
+        </div>
+      )}
       <ModalBasic
         title="Are you sure you want to start from the beginning?"
         isOpen={isOpen}

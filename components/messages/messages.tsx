@@ -19,7 +19,11 @@ import { saveAs } from "file-saver";
 import { jsPDF } from "jspdf";
 import { marked } from "marked";
 
-export default function MessagesBody() {
+export default function MessagesBody({
+  setShowConfetti,
+}: {
+  setShowConfetti: (show: boolean) => void;
+}) {
   const {
     chats,
     setChats,
@@ -83,6 +87,15 @@ export default function MessagesBody() {
     );
     setActiveButtons(newActiveButtons);
   }, [quotedTexts]);
+
+  useEffect(() => {
+    if (currentQuestionNumber === 15) {
+      setShowConfetti(true);
+      setTimeout(() => {
+        setShowConfetti(false);
+      }, 3000);
+    }
+  }, [currentQuestionNumber]);
 
   const sendMessage = async (
     text: string,
@@ -349,6 +362,7 @@ export default function MessagesBody() {
     "looks good": "Looks Good",
     "begin step 2": "Begin Step 2",
     regenerate: "Regenerate",
+    "complete & continue": "Complete & Continue",
   };
 
   const adjustTextareaHeight = () => {
