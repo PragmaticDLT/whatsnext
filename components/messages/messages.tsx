@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo, Fragment } from "react";
 import BotMessage from "./bot-message";
 import UserMessage from "./user-message";
 import { generateId } from "ai";
@@ -16,7 +16,11 @@ import {
   parse,
 } from "date-fns";
 import { saveAs } from "file-saver";
-import { jsPDF } from "jspdf";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
+import { Menu, Transition } from "@headlessui/react";
+import { ChevronDownIcon } from "@heroicons/react/20/solid";
+import html2pdf from "html2pdf.js";
 import { marked } from "marked";
 
 export default function MessagesBody({
@@ -372,12 +376,13 @@ export default function MessagesBody({
     }
   };
 
-  const createGoogleCalendarEvent = (
+  const createCalendarEvent = (
     activity: string,
     weekOffset: number,
     dayOfWeek: number,
     dayName: string,
-    time: string
+    time: string,
+    calendarType: "google" | "ical" | "outlook"
   ) => {
     const startDate = addWeeks(new Date(), weekOffset);
     const [hour, period] = time.match(/(\d{1,2})(am|pm)/)?.slice(1) || [];
@@ -387,10 +392,35 @@ export default function MessagesBody({
     const eventDate = setHours(setMinutes(startDate, 0), eventHour);
     const formattedDate = format(eventDate, "yyyyMMdd'T'HHmmss'Z'");
     const endDate = format(addMinutes(eventDate, 30), "yyyyMMdd'T'HHmmss'Z'");
-    const url = `https://calendar.google.com/calendar/u/0/r/eventedit?text=${encodeURIComponent(
+
+    const googleUrl = `https://calendar.google.com/calendar/u/0/r/eventedit?text=${encodeURIComponent(
       activity
     )}&dates=${formattedDate}/${endDate}`;
-    window.open(url, "_blank");
+
+    const icsUrl = `data:text/calendar;charset=utf8,BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+SUMMARY:${encodeURIComponent(activity)}
+DTSTART:${formattedDate}
+DTEND:${endDate}
+END:VEVENT
+END:VCALENDAR`;
+
+    const outlookUrl = `https://outlook.live.com/owa/?path=/calendar/action/compose&rru=addevent&subject=${encodeURIComponent(
+      activity
+    )}&startdt=${formattedDate}&enddt=${endDate}`;
+
+    switch (calendarType) {
+      case "google":
+        window.open(googleUrl, "_blank");
+        break;
+      case "ical":
+        window.open(icsUrl);
+        break;
+      case "outlook":
+        window.open(outlookUrl, "_blank");
+        break;
+    }
   };
 
   const renderTableButtons = (message: string) => {
@@ -426,21 +456,104 @@ export default function MessagesBody({
             if (dayIndex >= days.length) return null;
             const { dayName, time } = days[dayIndex];
             return (
-              <button
+              <Menu
+                as="div"
                 key={`${weekIndex}-${dayIndex}`}
-                className="btn bg-indigo-500 text-white hover:bg-indigo-600 text-sm p-2"
-                onClick={() =>
-                  createGoogleCalendarEvent(
-                    cell.trim(),
-                    weekIndex + 1,
-                    dayIndex + 1,
-                    dayName,
-                    time
-                  )
-                }
+                className="relative inline-block text-left"
               >
-                Schedule: Week {weekIndex + 1}, {dayName} ({time})
-              </button>
+                <div>
+                  <Menu.Button className="btn bg-indigo-500 text-white hover:bg-indigo-600 text-sm p-2 inline-flex w-full justify-center gap-x-1.5 rounded-md">
+                    Schedule: Week {weekIndex + 1}, {dayName} ({time})
+                    <ChevronDownIcon
+                      className="-mr-1 h-5 w-5 text-gray-400"
+                      aria-hidden="true"
+                    />
+                  </Menu.Button>
+                </div>
+
+                <Transition
+                  enter="transition ease-out duration-100"
+                  enterFrom="transform opacity-0 scale-95"
+                  enterTo="transform opacity-100 scale-100"
+                  leave="transition ease-in duration-75"
+                  leaveFrom="transform opacity-100 scale-100"
+                  leaveTo="transform opacity-0 scale-95"
+                >
+                  <Menu.Items className="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                    <div className="py-1">
+                      <Menu.Item>
+                        {({ active }) => (
+                          <button
+                            onClick={() =>
+                              createCalendarEvent(
+                                cell.trim(),
+                                weekIndex + 1,
+                                dayIndex + 1,
+                                dayName,
+                                time,
+                                "google"
+                              )
+                            }
+                            className={`${
+                              active
+                                ? "bg-gray-100 text-gray-900"
+                                : "text-gray-700"
+                            } block px-4 py-2 text-sm w-full text-left`}
+                          >
+                            Google Calendar
+                          </button>
+                        )}
+                      </Menu.Item>
+                      <Menu.Item>
+                        {({ active }) => (
+                          <button
+                            onClick={() =>
+                              createCalendarEvent(
+                                cell.trim(),
+                                weekIndex + 1,
+                                dayIndex + 1,
+                                dayName,
+                                time,
+                                "ical"
+                              )
+                            }
+                            className={`${
+                              active
+                                ? "bg-gray-100 text-gray-900"
+                                : "text-gray-700"
+                            } block px-4 py-2 text-sm w-full text-left`}
+                          >
+                            iCal
+                          </button>
+                        )}
+                      </Menu.Item>
+                      <Menu.Item>
+                        {({ active }) => (
+                          <button
+                            onClick={() =>
+                              createCalendarEvent(
+                                cell.trim(),
+                                weekIndex + 1,
+                                dayIndex + 1,
+                                dayName,
+                                time,
+                                "outlook"
+                              )
+                            }
+                            className={`${
+                              active
+                                ? "bg-gray-100 text-gray-900"
+                                : "text-gray-700"
+                            } block px-4 py-2 text-sm w-full text-left`}
+                          >
+                            Outlook
+                          </button>
+                        )}
+                      </Menu.Item>
+                    </div>
+                  </Menu.Items>
+                </Transition>
+              </Menu>
             );
           });
         })}
@@ -448,25 +561,79 @@ export default function MessagesBody({
     );
   };
 
-  const downloadPDF = (text: string) => {
-    const doc = new jsPDF();
-    const html = marked(text);
+  const downloadPDF = (text?: string) => {
+    // Remove the specified phrase and extract the relevant content
+    const cleanedText = text
+      ?.replace(
+        "Please review this. If it resonates with you, confirm by saying 'Looks good'. If it requires adjustments, specify what needs changing, or ask for a regeneration by saying 'Regenerate'.",
+        ""
+      )
+      .trim();
 
-    doc.setFontSize(12);
+    // Convert Markdown to HTML
+    const contentHtml = marked.parse(cleanedText || "");
 
-    doc.html(html, {
-      callback: function (doc) {
-        doc.save("whats_next_intention.pdf");
-      },
-      x: 10,
-      y: 10,
-      html2canvas: {
-        scale: 0.3,
-      },
-      autoPaging: "text",
-      width: 100,
-      windowWidth: 600,
-    });
+    // Create HTML content
+    const htmlContent = `
+      <html>
+        <head>
+          <style>
+            body {
+              font-family: 'Monorama', sans-serif;
+              margin: 0;
+              padding: 0;
+            }
+            .header {
+              background-color: #4F46E5;
+              color: white;
+              padding: 20px;
+              text-align: center;
+              font-size: 24px;
+            }
+            .content {
+              padding: 20px;
+              font-size: 16px;
+              line-height: 3;
+            }
+            .footer {
+              position: fixed;
+              bottom: 0;
+              width: 100%;
+              padding: 10px;
+              text-align: center;
+              font-size: 12px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">What's Next Intention</div>
+          <div class="content">${contentHtml}</div>
+        </body>
+      </html>
+    `;
+
+    // Configure PDF options
+    const opt = {
+      margin: 10,
+      filename: "whats_next_intention.pdf",
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+      pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+    };
+
+    // Generate PDF
+    html2pdf().from(htmlContent).set(opt).save();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+      e.preventDefault();
+      if (messageInput !== "" && !inputDisabled) {
+        handleSubmission(messageInput);
+        setMessageInput("");
+      }
+    }
   };
 
   return (
@@ -546,6 +713,7 @@ export default function MessagesBody({
                   setMessageInput(e.target.value);
                   adjustTextareaHeight();
                 }}
+                onKeyDown={handleKeyDown}
                 disabled={inputDisabled}
                 ref={InputRef}
                 rows={1}

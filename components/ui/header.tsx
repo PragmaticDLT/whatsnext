@@ -8,6 +8,8 @@ import Notifications from "@/components/dropdown-notifications";
 import DropdownHelp from "@/components/dropdown-help";
 import ThemeToggle from "@/components/theme-toggle";
 import DropdownProfile from "@/components/dropdown-profile";
+import Image from "next/image";
+import Logo from "/public/images/Arrow_Blue.png";
 
 export default function Header() {
   const { sidebarOpen, setSidebarOpen } = useAppProvider();
@@ -17,15 +19,23 @@ export default function Header() {
     <header className="sticky top-0 bg-white dark:bg-[#182235] border-b border-slate-200 dark:border-slate-700 z-30">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 -mb-px">
-          <h1
-            className="text-2xl md:text-3xl text-slate-800 dark:text-slate-100 font-bold mb-1"
-            style={{ fontFamily: "Monorama" }}
-          >
-            What's Next Life Coach
-          </h1>
+          <div className="flex items-center gap-2">
+            <Image
+              src={Logo}
+              alt="What's Next Life Coach"
+              width={30}
+              height={20}
+            />
+            <h1
+              className="text-2xl md:text-3xl text-slate-800 dark:text-slate-100 font-bold mb-1"
+              style={{ fontFamily: "Monorama" }}
+            >
+              What's Next Life Coach
+            </h1>
+          </div>
 
           <div className="flex">
-            <button
+            {/* <button
               className="text-slate-500 hover:text-slate-600 lg:hidden"
               aria-controls="sidebar"
               aria-expanded={sidebarOpen}
@@ -43,7 +53,7 @@ export default function Header() {
                 <rect x="4" y="11" width="16" height="2" />
                 <rect x="4" y="17" width="16" height="2" />
               </svg>
-            </button>
+            </button> */}
           </div>
 
           {/* <div className="flex items-center space-x-3">

@@ -12,7 +12,7 @@ interface BotMessageProps {
   text?: ReactNode;
   activeQuestions?: boolean;
   handleSendMessage: (message: string) => void;
-  downloadPDF: () => void;
+  downloadPDF: (text?: string) => void;
 }
 const questions = [{ question: "Let's Get Started!" }];
 
