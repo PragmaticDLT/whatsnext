@@ -1,0 +1,13 @@
+export const buttonOptions = {
+  "ok next": "OK next",
+  "start the questions": "Start the questions",
+  "ok i'm ready": "OK I'm ready",
+  "ok i’m ready": "OK I'm ready",
+  next: "Next",
+  done: "Done",
+  "explore other options": "Explore other options",
+  "looks good": "Looks Good",
+  "begin step 2": "Begin Step 2",
+  regenerate: "Regenerate",
+  "complete & continue": "Complete & Continue",
+};

@@ -1,27 +1,165 @@
 import Image from "next/image";
 import User01 from "../../public/images/WNChat.png";
-import { ReactNode } from "react";
-import "react-responsive-carousel/lib/styles/carousel.min.css";
-import { Carousel } from "react-responsive-carousel";
+import { ReactNode, useEffect, useState } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
 import "./styles.css";
+import DownloadPDFButton from "./download-pdf-button";
+import { useChatsContext } from "../../contexts/chats-context";
+import renderTableButtons from "./table-buttons";
 
 interface BotMessageProps {
   text?: ReactNode;
   activeQuestions?: boolean;
   handleSendMessage: (message: string) => void;
-  downloadPDF: (text?: string) => void;
 }
-const questions = [{ question: "Let's Get Started!" }];
 
 function BotMessage({
   text,
   activeQuestions,
   handleSendMessage,
-  downloadPDF,
 }: BotMessageProps) {
+  const { parsedJson, setParsedJson } = useChatsContext();
+  const [parsedJsonLocal, setParsedJsonLocal] = useState<any>(null);
+
+  useEffect(() => {
+    if (
+      typeof text === "string" &&
+      text.startsWith("```json") &&
+      text.endsWith("```")
+    ) {
+      try {
+        const jsonContent = text.replace(/^```json\n|\n```$/g, "");
+        const parsed = JSON.parse(jsonContent);
+        setParsedJsonLocal(parsed);
+        setParsedJson(parsed);
+      } catch (error) {
+        console.error("Error parsing JSON:", error);
+      }
+    }
+  }, [text, setParsedJson, parsedJson]);
+
+  const renderJsonContent = (content: any) => {
+    if (!content) return null;
+
+    return (
+      <div className="json-content">
+        <h2 className="text-xl font-bold mb-4">
+          {content["30-Day Plan Title"]}
+        </h2>
+
+        <h3 className="text-lg font-semibold mt-4 mb-2">
+          Finalized What's Next Intention:
+        </h3>
+        <p>{content["Finalized What’s Next Intention"]}</p>
+
+        <h3 className="text-lg font-semibold mt-4 mb-2">Schedule Details:</h3>
+        <ul className="list-disc list-inside">
+          <li>
+            <strong>Days of the week:</strong> {content["Days of the week"]}
+          </li>
+          <li>
+            <strong>Time of day:</strong> {content["Time of day"]}
+          </li>
+          <li>
+            <strong>Place:</strong> {content["Place"]}
+          </li>
+          <li>
+            <strong>Start Date:</strong> {content["Start Date"]}
+          </li>
+          <li>
+            <strong>Fulfillment Date:</strong> {content["Fulfillment Date"]}
+          </li>
+        </ul>
+
+        <h3 className="text-lg font-semibold mt-4 mb-2">
+          Action/Habit Stacking Statements:
+        </h3>
+        <ul className="list-disc list-inside">
+          {content["Action/Habit Stacking Statements"].map(
+            (item: any, index: number) => (
+              <li key={index}>
+                <strong>{item.Action}</strong>
+                <ul className="list-circle list-inside ml-4">
+                  <li>Current habit: {item["Identified Current Habit"]}</li>
+                  <li>
+                    Pairing:{" "}
+                    {item["Pairing Action to Existing Habit Statement"]}
+                  </li>
+                </ul>
+              </li>
+            )
+          )}
+        </ul>
+
+        <h3 className="text-lg font-semibold mt-4 mb-2">
+          Potential Obstacles & Strategies:
+        </h3>
+        <ul className="list-disc list-inside">
+          {content["Potential Obstacles & Strategies"].map(
+            (item: any, index: number) => (
+              <li key={index}>
+                <strong>Obstacle:</strong> {item.Obstacle}
+                <ul className="list-circle list-inside ml-4">
+                  <li>Strategy: {item.Strategy}</li>
+                </ul>
+              </li>
+            )
+          )}
+        </ul>
+
+        <h3 className="text-lg font-semibold mt-4 mb-2">Support System:</h3>
+        <ul className="list-disc list-inside">
+          {content["Support System"].map((item: any, index: number) => (
+            <li key={index}>
+              <strong>{item.Name}:</strong> {item["How they can help"]}
+            </li>
+          ))}
+        </ul>
+
+        <h3 className="text-lg font-semibold mt-4 mb-2">Calendar:</h3>
+        {renderCalendarTable(content["Calendar Table"])}
+      </div>
+    );
+  };
+
+  const renderCalendarTable = (calendarData: any[]) => {
+    if (!calendarData || calendarData.length === 0) return null;
+
+    const headers = Object.keys(calendarData[0]);
+    const markdownTable = [
+      `| ${headers.join(" | ")} |`,
+      `| ${headers.map(() => "---").join(" | ")} |`,
+      ...calendarData.map(
+        (week) =>
+          `| ${headers.map((header) => week[header] || "").join(" | ")} |`
+      ),
+    ].join("\n");
+
+    return (
+      <>
+        <Markdown
+          remarkPlugins={[remarkGfm, remarkBreaks]}
+          components={{
+            table: ({ children, ...props }) => (
+              <table
+                className="my-4"
+                style={{ width: "100%", border: "1px solid #555" }}
+                {...props}
+              >
+                {children}
+              </table>
+            ),
+          }}
+        >
+          {markdownTable}
+        </Markdown>
+        {renderTableButtons(parsedJsonLocal)}
+      </>
+    );
+  };
+
   return (
     <>
       <div className="mb-4 flex items-start last:mb-0 first:mb-1">
@@ -70,6 +208,8 @@ function BotMessage({
                   />
                 </circle>
               </svg>
+            ) : parsedJsonLocal ? (
+              renderJsonContent(parsedJsonLocal)
             ) : (
               <Markdown
                 urlTransform={(url) => url}
@@ -109,40 +249,25 @@ function BotMessage({
         </div>
       </div>
       <div className="flex space-x-4 ml-14">
-        <Carousel
-          showStatus={false}
-          infiniteLoop
-          className="max-w-xs mb-2"
-          showIndicators={false}
-          showThumbs={false}
-        >
-          {activeQuestions &&
-            questions?.length > 0 &&
-            questions?.map((question, index) => (
-              <div
-                className="rounded h-full bg-slate-500 text-slate-100 hover:bg-slate-600 pl-2 pr-2"
-                key={index}
+        {activeQuestions && (
+          <div className="max-w-xs mb-2">
+            <div className="rounded h-full bg-slate-500 text-slate-100 hover:bg-slate-600 pl-2 pr-2">
+              <button
+                className="btn-sm w-full h-full min-h-14"
+                onClick={() => {
+                  handleSendMessage("Let's Get Started!");
+                }}
               >
-                <button
-                  className="btn-sm w-full h-full min-h-14"
-                  onClick={() => {
-                    handleSendMessage(question.question);
-                  }}
-                >
-                  {question.question}
-                </button>
-              </div>
-            ))}
-        </Carousel>
-        {text?.includes("Finalized What’s Next Intention Statement") && (
-          <button
-            className="btn bg-green-500 text-white hover:bg-green-600"
-            onClick={() => {
-              downloadPDF(text);
-            }}
-          >
-            Download PDF
-          </button>
+                Let's Get Started!
+              </button>
+            </div>
+          </div>
+        )}
+        {parsedJsonLocal && (
+          <DownloadPDFButton
+            json={parsedJsonLocal}
+            text={JSON.stringify(parsedJsonLocal)}
+          />
         )}
       </div>
     </>

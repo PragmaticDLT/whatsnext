@@ -1,25 +1,19 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useAppProvider } from "@/app/app-provider";
-import { useSelectedLayoutSegments } from "next/navigation";
+import { useAppProvider } from "@/contexts/app-provider";
 import { Transition } from "@headlessui/react";
-import { getBreakpoint } from "../utils/utils";
-import SidebarLinkGroup from "./sidebar-link-group";
-import SidebarLink from "./sidebar-link";
-import Logo from "./logo";
-import DirectMessages from "../messages/direct-messages";
+import { getBreakpoint } from "@/utils/utils";
+import Logo from "/public/images/WNChat.png";
+import Image from "next/image";
+import Logo_dark from "/public/images/Logo_dark.png";
 
 export default function Sidebar() {
   const sidebar = useRef<HTMLDivElement>(null);
   const { sidebarOpen, setSidebarOpen } = useAppProvider();
-  const [sidebarExpanded, setSidebarExpanded] = useState<boolean>(false);
-  const segments = useSelectedLayoutSegments();
   const [breakpoint, setBreakpoint] = useState<string | undefined>(
     getBreakpoint()
   );
-  const expandOnly =
-    !sidebarExpanded && (breakpoint === "lg" || breakpoint === "xl");
 
   // close on click outside
   useEffect(() => {
@@ -54,7 +48,7 @@ export default function Sidebar() {
   }, [breakpoint]);
 
   return (
-    <div className={`min-w-fit ${sidebarExpanded ? "sidebar-expanded" : ""}`}>
+    <div className={`min-w-fit sidebar-expanded`}>
       {/* Sidebar backdrop (mobile only) */}
       <Transition
         className="fixed inset-0 bg-slate-900 bg-opacity-30 z-40 lg:hidden lg:z-auto"
@@ -71,7 +65,7 @@ export default function Sidebar() {
       {/* Sidebar */}
       <Transition
         show={sidebarOpen}
-        unmount={false}
+        unmount={true}
         as="div"
         id="sidebar"
         ref={sidebar}
@@ -85,7 +79,7 @@ export default function Sidebar() {
         <div className="flex justify-between mb-10 pr-3 sm:px-2">
           {/* Close button */}
           <button
-            className="lg:hidden text-slate-500 hover:text-slate-400"
+            className="text-slate-500 hover:text-slate-400"
             onClick={() => setSidebarOpen(!sidebarOpen)}
             aria-controls="sidebar"
             aria-expanded={sidebarOpen}
@@ -99,121 +93,16 @@ export default function Sidebar() {
               <path d="M10.7 18.7l1.4-1.4L7.8 13H20v-2H7.8l4.3-4.3-1.4-1.4L4 12z" />
             </svg>
           </button>
-          {/* Logo */}
-          {/* <Logo /> */}
+          <Image
+            src={Logo}
+            alt="Logo"
+            width={50}
+            style={{ rotate: "-90deg" }}
+          />
         </div>
 
-        {/* Links */}
-        <div className="space-y-8">
-          {/* Pages group */}
-          <div>
-            <h3 className="text-xs uppercase text-slate-500 font-semibold pl-3">
-              <span
-                className="hidden lg:block lg:sidebar-expanded:hidden 2xl:hidden text-center w-6"
-                aria-hidden="true"
-              >
-                •••
-              </span>
-              <span className="lg:hidden lg:sidebar-expanded:block 2xl:block">
-                Pages
-              </span>
-            </h3>
-            <ul className="mt-3">
-              {/* Dashboard */}
-              <SidebarLinkGroup open={segments.includes("dashboard")}>
-                {(handleClick, open) => {
-                  return (
-                    <>
-                      <a
-                        href="#0"
-                        className={`block text-slate-200 truncate transition duration-150 ${
-                          segments.includes("dashboard")
-                            ? "hover:text-slate-200"
-                            : "hover:text-white"
-                        }`}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          expandOnly ? setSidebarExpanded(true) : handleClick();
-                        }}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center">
-                            <svg
-                              className="shrink-0 h-6 w-6"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                className={`fill-current ${
-                                  segments.includes("dashboard")
-                                    ? "text-indigo-500"
-                                    : "text-slate-400"
-                                }`}
-                                d="M12 0C5.383 0 0 5.383 0 12s5.383 12 12 12 12-5.383 12-12S18.617 0 12 0z"
-                              />
-                              <path
-                                className={`fill-current ${
-                                  segments.includes("dashboard")
-                                    ? "text-indigo-600"
-                                    : "text-slate-600"
-                                }`}
-                                d="M12 3c-4.963 0-9 4.037-9 9s4.037 9 9 9 9-4.037 9-9-4.037-9-9-9z"
-                              />
-                              <path
-                                className={`fill-current ${
-                                  segments.includes("dashboard")
-                                    ? "text-indigo-200"
-                                    : "text-slate-400"
-                                }`}
-                                d="M12 15c-1.654 0-3-1.346-3-3 0-.462.113-.894.3-1.285L6 6l4.714 3.301A2.973 2.973 0 0112 9c1.654 0 3 1.346 3 3s-1.346 3-3 3z"
-                              />
-                            </svg>
-                            <span className="text-sm font-medium ml-3 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
-                              Chat
-                            </span>
-                          </div>
-                          {/* Icon */}
-                          <div className="flex shrink-0 ml-2">
-                            <svg
-                              className={`w-3 h-3 shrink-0 ml-1 fill-current text-slate-400 ${
-                                open && "rotate-180"
-                              }`}
-                              viewBox="0 0 12 12"
-                            >
-                              <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
-                            </svg>
-                          </div>
-                        </div>
-                      </a>
-                      <div className="lg:hidden lg:sidebar-expanded:block 2xl:block">
-                        <ul className={`mt-1 ${!open && "hidden"}`}>
-                          <DirectMessages />
-                        </ul>
-                      </div>
-                    </>
-                  );
-                }}
-              </SidebarLinkGroup>
-              {/* E-Commerce */}
-            </ul>
-          </div>
-        </div>
-        {/* Expand / collapse button */}
-        <div className="pt-3 hidden lg:inline-flex 2xl:hidden justify-end mt-auto">
-          <div className="px-3 py-2">
-            <button onClick={() => setSidebarExpanded(!sidebarExpanded)}>
-              <span className="sr-only">Expand / collapse sidebar</span>
-              <svg
-                className="w-6 h-6 fill-current sidebar-expanded:rotate-180"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  className="text-slate-400"
-                  d="M19.586 11l-5-5L16 4.586 23.414 12 16 19.414 14.586 18l5-5H7v-2z"
-                />
-                <path className="text-slate-600" d="M3 23H1V1h2z" />
-              </svg>
-            </button>
-          </div>
+        <div className="flex flex-col justify-between h-full">
+          <Image src={Logo_dark} width={100} alt="Logo" />
         </div>
       </Transition>
     </div>

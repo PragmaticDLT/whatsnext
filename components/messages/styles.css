@@ -13,3 +13,12 @@ td,
 th {
   border: 1px dashed #555;
 }
+
+.json-item {
+  margin-left: 20px;
+}
+
+.json-item>ul {
+  margin: 0;
+  padding-left: 20px;
+}

@@ -1,6 +1,5 @@
 import Link from "next/link";
 import Image from "next/image";
-import Sidebar from "@/components/ui/sidebar";
 import Header from "@/components/ui/header";
 import NotFoundImage from "@/public/images/404-illustration.svg";
 import NotFoundImageDark from "@/public/images/404-illustration-dark.svg";
@@ -42,10 +41,10 @@ export default function NotFound() {
                     else!
                   </div>
                   <Link
-                    href="/"
+                    href="/home"
                     className="btn bg-indigo-500 hover:bg-indigo-600 text-white"
                   >
-                    Back To Dashboard
+                    Back To Home
                   </Link>
                 </div>
               </div>
