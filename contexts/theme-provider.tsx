@@ -7,6 +7,7 @@ export default function Theme({ children }: { children: React.ReactNode }) {
     <ThemeProvider
       attribute="class"
       disableTransitionOnChange
+      defaultTheme="light"
       themes={["light"]}
     >
       {children}

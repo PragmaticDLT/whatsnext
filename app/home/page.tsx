@@ -1,4 +1,5 @@
 "use client";
+
 import WelcomeBanner from "./welcome-banner";
 import MessagesBody from "../../components/messages/messages";
 import { useChatsContext } from "../../contexts/chats-context";
@@ -7,7 +8,7 @@ import { useState } from "react";
 import useWindowSize from "react-use/lib/useWindowSize";
 import Confetti from "react-confetti";
 
-export default function Dashboard() {
+export default function Home() {
   const { width, height } = useWindowSize();
   const { chatSelected, clearChat } = useChatsContext();
   const [isOpen, setIsOpen] = useState(false);
@@ -38,7 +39,7 @@ export default function Dashboard() {
           <Confetti
             width={width}
             height={height}
-            className="animate-fade-in-down animate-duration-3000 animate-delay-1000"
+            className="animate-fade-in-down animate-duration-1000"
           />
         </div>
       )}
