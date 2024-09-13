@@ -3,13 +3,13 @@ import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { createCalendarEvent } from "../../hooks/useCalendarEvents";
 
 const renderTableButtons = (parsedJson: any) => {
-  if (!parsedJson || !parsedJson["Calendar Table"]) return null;
+  if (!parsedJson || !Array.isArray(parsedJson["Calendar Table"])) return null;
 
   const calendarTable = parsedJson["Calendar Table"];
 
   return (
     <div className="grid grid-cols-2 gap-2 mt-4">
-      {Object.entries(calendarTable).map(([index, weekData]: [string, any]) => {
+      {calendarTable.map((weekData, index) => {
         return Object.entries(weekData).map(
           ([day, activity]: [string, string]) => {
             if (day === "Week") return null;

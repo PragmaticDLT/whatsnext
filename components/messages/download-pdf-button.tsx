@@ -31,10 +31,13 @@ async function createPDF(json: any) {
     const logoImage = await pdfDoc.embedPng(logoImageBytes);
 
     const title = json["30-Day Plan Title"] || "";
-    const intention = json["Finalized What’s Next Intention"] || "";
+    const intention =
+      json["Finalized What’s Next Intention"] ||
+      json["Finalized What's Next Intention"] ||
+      "";
     const actionSection = json["Action/Habit Stacking Statements"] || [];
-    const obstaclesSection = json["Potential Obstacles & Strategies"] || [];
-    const supportSection = json["Support System"] || [];
+    const obstaclesSection = json["Obstacles & Strategies"] || [];
+    const supportSection = json["Support/People Network"] || [];
 
     // Función auxiliar para dividir el texto en líneas
     const splitTextIntoLines = (
@@ -238,7 +241,7 @@ async function createPDF(json: any) {
 
       for (const item of supportSection) {
         const supportLines = splitTextIntoLines(
-          `- ${item["Name"]}: ${item["How they can help"]}`,
+          `- ${item["Name"]}: ${item["Description"]}`,
           maxWidth,
           12
         );

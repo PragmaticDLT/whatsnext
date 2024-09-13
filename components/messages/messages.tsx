@@ -7,6 +7,7 @@ import { useChatsContext } from "../../contexts/chats-context";
 import { buttonOptions } from "../../constants/buttonOptions";
 import { MessageInput } from "./message-input";
 import { MessageBody } from "./message-body";
+import TestPanel from "./test-panel";
 
 export default function MessagesBody({
   setShowConfetti,
@@ -192,6 +193,16 @@ export default function MessagesBody({
     });
   };
 
+  function changeAssistant1(assistantId: string) {
+    setCurrentQuestionNumber(1);
+    setAssistantId(process.env.NEXT_PUBLIC_1_ASSISTANT_ID || "");
+    localStorage.setItem("currentQuestionNumber", "0");
+    localStorage.setItem(
+      "assistantId",
+      process.env.NEXT_PUBLIC_1_ASSISTANT_ID || ""
+    );
+  }
+
   const changeAssistant2 = () => {
     setCurrentQuestionNumber(15);
     setAssistantId(process.env.NEXT_PUBLIC_2_ASSISTANT_ID || "");
@@ -300,8 +311,8 @@ export default function MessagesBody({
     =======================
   */
 
-  const appendToLastMessage = (text) => {
-    setMessages((prevMessages) => {
+  const appendToLastMessage = (text: string) => {
+    setMessages((prevMessages: any[]) => {
       const lastMessage = prevMessages[prevMessages.length - 1];
       const updatedLastMessage = {
         ...lastMessage,
@@ -333,6 +344,12 @@ export default function MessagesBody({
     });
   };
 
+  const [testPanelOpen, setTestPanelOpen] = useState(false);
+
+  useEffect(() => {
+    localStorage.getItem("testPanel") && setTestPanelOpen(true);
+  }, []);
+
   return (
     <div className="flex h-full grow flex-col transition-transform duration-300 ease-in-out md:translate-x-0 w-full">
       <MessageBody
@@ -340,6 +357,13 @@ export default function MessagesBody({
         messagesEndRef={messagesEndRef}
         handleSubmission={handleSubmission}
       />
+      {testPanelOpen && (
+        <TestPanel
+          changeAssistant1={changeAssistant1}
+          changeAssistant2={changeAssistant2}
+          changeAssistant3={changeAssistant3}
+        />
+      )}
       <MessageInput
         messageInput={messageInput}
         setMessageInput={setMessageInput}

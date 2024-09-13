@@ -52,24 +52,28 @@ function BotMessage({
         <h3 className="text-lg font-semibold mt-4 mb-2">
           Finalized What's Next Intention:
         </h3>
-        <p>{content["Finalized What’s Next Intention"]}</p>
+        {content["Finalized What’s Next Intention"] ? (
+          <p>{content["Finalized What’s Next Intention"]}</p>
+        ) : (
+          <p>{content["Finalized What's Next Intention"]}</p>
+        )}
 
         <h3 className="text-lg font-semibold mt-4 mb-2">Schedule Details:</h3>
         <ul className="list-disc list-inside">
           <li>
-            <strong>Days of the week:</strong> {content["Days of the week"]}
+            <strong>Days of the week:</strong> {content["Schedule"].Days}
           </li>
           <li>
-            <strong>Time of day:</strong> {content["Time of day"]}
+            <strong>Time of day:</strong> {content["Schedule"].Time}
           </li>
           <li>
-            <strong>Place:</strong> {content["Place"]}
+            <strong>Place:</strong> {content["Schedule"].Place}
           </li>
           <li>
-            <strong>Start Date:</strong> {content["Start Date"]}
+            <strong>Start Date:</strong> {content["Schedule"]["Start Date"]}
           </li>
           <li>
-            <strong>Fulfillment Date:</strong> {content["Fulfillment Date"]}
+            <strong>Fulfillment Date:</strong> {content["Schedule"]["End Date"]}
           </li>
         </ul>
 
@@ -77,7 +81,7 @@ function BotMessage({
           Action/Habit Stacking Statements:
         </h3>
         <ul className="list-disc list-inside">
-          {content["Action/Habit Stacking Statements"].map(
+          {content["Action/Habit Stacking Statements"]?.map(
             (item: any, index: number) => (
               <li key={index}>
                 <strong>{item.Action}</strong>
@@ -97,7 +101,7 @@ function BotMessage({
           Potential Obstacles & Strategies:
         </h3>
         <ul className="list-disc list-inside">
-          {content["Potential Obstacles & Strategies"].map(
+          {content["Obstacles & Strategies"]?.map(
             (item: any, index: number) => (
               <li key={index}>
                 <strong>Obstacle:</strong> {item.Obstacle}
@@ -111,11 +115,13 @@ function BotMessage({
 
         <h3 className="text-lg font-semibold mt-4 mb-2">Support System:</h3>
         <ul className="list-disc list-inside">
-          {content["Support System"].map((item: any, index: number) => (
-            <li key={index}>
-              <strong>{item.Name}:</strong> {item["How they can help"]}
-            </li>
-          ))}
+          {content["Support/People Network"]?.map(
+            (item: any, index: number) => (
+              <li key={index}>
+                <strong>{item.Name}:</strong> {item["Description"]}
+              </li>
+            )
+          )}
         </ul>
 
         <h3 className="text-lg font-semibold mt-4 mb-2">Calendar:</h3>
@@ -173,7 +179,9 @@ function BotMessage({
 
         <div>
           <div className="mb-1 rounded rounded-tl-none border border-slate-200 bg-white p-3 text-sm text-slate-800 shadow-md dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100">
-            {!text || text == "" ? (
+            {!text ||
+            text == "" ||
+            (text.startsWith("```json") && !text.endsWith("```")) ? (
               <svg
                 className="fill-current text-slate-400 dark:text-slate-500"
                 viewBox="0 0 15 3"

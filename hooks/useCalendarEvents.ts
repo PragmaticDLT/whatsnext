@@ -1,27 +1,32 @@
-import { addMinutes, addWeeks, format, setHours, setMinutes } from "date-fns";
+import {
+  addMinutes,
+  addWeeks,
+  format,
+  setHours,
+  setMinutes,
+  parse,
+} from "date-fns";
 
 export const createCalendarEvent = (
   activity: string,
-  weekOffset: number,
-  dayOfWeek: number,
+  weekNumber: string,
   dayName: string,
   time: string,
   calendarType: "google" | "ical" | "outlook",
-  eventNumber: number,
   parsedJson: any
 ) => {
+  const weekOffset = parseInt(weekNumber) - 1;
   const startDate = addWeeks(new Date(), weekOffset);
-  const [hour, period] = time.match(/(\d{1,2})(am|pm)/)?.slice(1) || [];
+  const [hour, period] = time.split(" ");
   const eventHour =
     parseInt(hour) + (period.toLowerCase() === "pm" && hour !== "12" ? 12 : 0);
   const eventDate = setHours(setMinutes(startDate, 0), eventHour);
   const formattedDate = format(eventDate, "yyyyMMdd'T'HHmmss'Z'");
   const endDate = format(addMinutes(eventDate, 30), "yyyyMMdd'T'HHmmss'Z'");
 
-  const eventTitle = `What's Next Check-in #${eventNumber}`;
-  console.log(parsedJson);
-  const obstaclesSection =
-    parsedJson["Identified Obstacles and Strategies"] || [];
+  const eventTitle = `What's Next Check-in: #${weekNumber}`;
+
+  const obstaclesSection = parsedJson["Obstacles & Strategies"] || [];
   const supportSection = parsedJson["Support/People Network"] || [];
 
   const description = `
@@ -30,14 +35,13 @@ ${activity}
 Obstacles:
 ${obstaclesSection
   .map(
-    (item: { item: any }) =>
-      `- obstacle: ${item.Obstacle} \n - strategy: ${item.Strategy} \n - `
+    (item: any) => `- Obstacle: ${item.Obstacle}\n  Strategy: ${item.Strategy}`
   )
   .join("\n")}
 
 Support Network:
 ${supportSection
-  .map((item: { text: any }) => `- ${item.Name}: ${item.Role}`)
+  .map((item: any) => `- ${item.Name}: ${item.Description}`)
   .join("\n")}
   `.trim();
 
