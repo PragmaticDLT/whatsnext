@@ -20,7 +20,7 @@ const TableButtons = ({ parsedJson }: { parsedJson: any }) => {
             const dropdownKey = `${index}-${day}`;
 
             return (
-              <DropdownMenu
+              <CalendarButtons
                 key={dropdownKey}
                 weekData={weekData}
                 dayName={dayName}
@@ -28,12 +28,6 @@ const TableButtons = ({ parsedJson }: { parsedJson: any }) => {
                 activity={activity}
                 weekNumber={weekNumber}
                 parsedJson={parsedJson}
-                isOpen={openDropdown === dropdownKey}
-                setOpenDropdown={() =>
-                  setOpenDropdown(
-                    openDropdown === dropdownKey ? null : dropdownKey
-                  )
-                }
               />
             );
           }
@@ -43,53 +37,43 @@ const TableButtons = ({ parsedJson }: { parsedJson: any }) => {
   );
 };
 
-const DropdownMenu = ({
+const CalendarButtons = ({
   weekData,
   dayName,
   time,
   activity,
   weekNumber,
   parsedJson,
-  isOpen,
-  setOpenDropdown,
 }) => {
+  const buttonTitle = `Schedule: ${weekData.Week}, ${dayName} (${time})`;
+
   return (
     <div className="relative inline-block text-left">
-      <button
-        onClick={setOpenDropdown}
-        className="btn bg-indigo-500 text-white hover:bg-indigo-600 text-sm p-2 inline-flex w-full justify-center gap-x-1.5 rounded-md"
-      >
-        Schedule: {weekData.Week}, {dayName} ({time})
-        <span className="-mr-1 h-5 w-5 text-gray-400">▼</span>
-      </button>
-
-      {isOpen && (
-        <div className="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-          <div className="py-1">
-            {["google", "ical", "outlook"].map((calendarType) => (
-              <button
-                key={calendarType}
-                onClick={() => {
-                  const url = createCalendarEvent(
-                    activity,
-                    weekNumber,
-                    dayName,
-                    time,
-                    calendarType,
-                    parsedJson
-                  );
-                  window.location.href = url;
-                  setOpenDropdown();
-                }}
-                className="block px-4 py-2 text-sm w-full text-left hover:bg-gray-100 text-gray-700"
-              >
-                {calendarType.charAt(0).toUpperCase() + calendarType.slice(1)}{" "}
-                Calendar
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+      <div className=" text-black text-sm p-2 rounded-md mb-2">
+        {buttonTitle}
+      </div>
+      <div className="flex space-x-2">
+        {["google", "ical", "outlook"].map((calendarType) => (
+          <button
+            key={calendarType}
+            onClick={() => {
+              const url = createCalendarEvent(
+                activity,
+                weekNumber,
+                dayName,
+                time,
+                calendarType,
+                parsedJson
+              );
+              window.open(url, "_blank");
+            }}
+            className="btn bg-indigo-500 text-white hover:bg-indigo-600 text-sm p-2 rounded-md"
+          >
+            {calendarType.charAt(0).toUpperCase() + calendarType.slice(1)}{" "}
+            Calendar
+          </button>
+        ))}
+      </div>
     </div>
   );
 };
