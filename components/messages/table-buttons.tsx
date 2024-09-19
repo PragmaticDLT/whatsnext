@@ -70,7 +70,7 @@ const DropdownMenu = ({
               <button
                 key={calendarType}
                 onClick={() => {
-                  createCalendarEvent(
+                  const url = createCalendarEvent(
                     activity,
                     weekNumber,
                     dayName,
@@ -78,6 +78,7 @@ const DropdownMenu = ({
                     calendarType,
                     parsedJson
                   );
+                  window.open(url, "_blank");
                   setOpenDropdown();
                 }}
                 className="block px-4 py-2 text-sm w-full text-left hover:bg-gray-100 text-gray-700"

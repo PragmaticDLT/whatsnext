@@ -69,13 +69,12 @@ END:VCALENDAR`;
 
   switch (calendarType) {
     case "google":
-      window.open(googleUrl, "_blank");
-      break;
+      return googleUrl;
     case "ical":
-      window.open(icsUrl);
-      break;
+      return icsUrl;
     case "outlook":
-      window.open(outlookUrl, "_blank");
-      break;
+      return outlookUrl;
+    default:
+      return "";
   }
 };
