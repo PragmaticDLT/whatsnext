@@ -1,11 +1,11 @@
-import { Menu, Transition } from "@headlessui/react";
-import { ChevronDownIcon } from "@heroicons/react/20/solid";
+import React, { useState } from "react";
 import { createCalendarEvent } from "../../hooks/useCalendarEvents";
 
-const renderTableButtons = (parsedJson: any) => {
+const TableButtons = ({ parsedJson }: { parsedJson: any }) => {
   if (!parsedJson || !Array.isArray(parsedJson["Calendar Table"])) return null;
 
   const calendarTable = parsedJson["Calendar Table"];
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   return (
     <div className="grid grid-cols-2 gap-2 mt-4">
@@ -17,64 +17,24 @@ const renderTableButtons = (parsedJson: any) => {
             const [dayName, timeOfDay] = day.split(" (");
             const time = timeOfDay.replace(")", "");
             const weekNumber = weekData.Week.split(" ")[1];
+            const dropdownKey = `${index}-${day}`;
 
             return (
-              <Menu
-                as="div"
-                key={`${index}-${day}`}
-                className="relative inline-block text-left"
-              >
-                <div>
-                  <Menu.Button className="btn bg-indigo-500 text-white hover:bg-indigo-600 text-sm p-2 inline-flex w-full justify-center gap-x-1.5 rounded-md">
-                    Schedule: {weekData.Week}, {dayName} ({time})
-                    <ChevronDownIcon
-                      className="-mr-1 h-5 w-5 text-gray-400"
-                      aria-hidden="true"
-                    />
-                  </Menu.Button>
-                </div>
-
-                <Transition
-                  enter="transition ease-out duration-100"
-                  enterFrom="transform opacity-0 scale-95"
-                  enterTo="transform opacity-100 scale-100"
-                  leave="transition ease-in duration-75"
-                  leaveFrom="transform opacity-100 scale-100"
-                  leaveTo="transform opacity-0 scale-95"
-                >
-                  <Menu.Items className="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                    <div className="py-1">
-                      {["google", "ical", "outlook"].map((calendarType) => (
-                        <Menu.Item key={calendarType}>
-                          {({ active }) => (
-                            <button
-                              onClick={() =>
-                                createCalendarEvent(
-                                  activity,
-                                  weekNumber,
-                                  dayName,
-                                  time,
-                                  calendarType,
-                                  parsedJson
-                                )
-                              }
-                              className={`${
-                                active
-                                  ? "bg-gray-100 text-gray-900"
-                                  : "text-gray-700"
-                              } block px-4 py-2 text-sm w-full text-left`}
-                            >
-                              {calendarType.charAt(0).toUpperCase() +
-                                calendarType.slice(1)}{" "}
-                              Calendar
-                            </button>
-                          )}
-                        </Menu.Item>
-                      ))}
-                    </div>
-                  </Menu.Items>
-                </Transition>
-              </Menu>
+              <DropdownMenu
+                key={dropdownKey}
+                weekData={weekData}
+                dayName={dayName}
+                time={time}
+                activity={activity}
+                weekNumber={weekNumber}
+                parsedJson={parsedJson}
+                isOpen={openDropdown === dropdownKey}
+                setOpenDropdown={() =>
+                  setOpenDropdown(
+                    openDropdown === dropdownKey ? null : dropdownKey
+                  )
+                }
+              />
             );
           }
         );
@@ -83,4 +43,54 @@ const renderTableButtons = (parsedJson: any) => {
   );
 };
 
-export default renderTableButtons;
+const DropdownMenu = ({
+  weekData,
+  dayName,
+  time,
+  activity,
+  weekNumber,
+  parsedJson,
+  isOpen,
+  setOpenDropdown,
+}) => {
+  return (
+    <div className="relative inline-block text-left">
+      <button
+        onClick={setOpenDropdown}
+        className="btn bg-indigo-500 text-white hover:bg-indigo-600 text-sm p-2 inline-flex w-full justify-center gap-x-1.5 rounded-md"
+      >
+        Schedule: {weekData.Week}, {dayName} ({time})
+        <span className="-mr-1 h-5 w-5 text-gray-400">▼</span>
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+          <div className="py-1">
+            {["google", "ical", "outlook"].map((calendarType) => (
+              <button
+                key={calendarType}
+                onClick={() => {
+                  createCalendarEvent(
+                    activity,
+                    weekNumber,
+                    dayName,
+                    time,
+                    calendarType,
+                    parsedJson
+                  );
+                  setOpenDropdown();
+                }}
+                className="block px-4 py-2 text-sm w-full text-left hover:bg-gray-100 text-gray-700"
+              >
+                {calendarType.charAt(0).toUpperCase() + calendarType.slice(1)}{" "}
+                Calendar
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default TableButtons;

@@ -79,15 +79,6 @@ export default function MessagesBody({
     setActiveButtons(newActiveButtons);
   }, [quotedTexts]);
 
-  useEffect(() => {
-    if (currentQuestionNumber === 15) {
-      setShowConfetti(true);
-      setTimeout(() => {
-        setShowConfetti(false);
-      }, 3000);
-    }
-  }, [currentQuestionNumber]);
-
   const sendMessage = async (
     text: string,
     assistantIdPreview: string | null
@@ -166,10 +157,13 @@ export default function MessagesBody({
               ...newMessages,
               {
                 role: "assistant",
-                text: "Wow, you type really fast! Please take a minute and try again later.",
+                text: 'Give me a minute and type into the message box, "OK Next" or your last message again',
               },
             ];
           });
+          setTimeout(() => {
+            setInputDisabled(false);
+          }, 30000);
         } else {
           setMessages((prevMessages) => {
             // Remove the last assistant message
@@ -183,9 +177,8 @@ export default function MessagesBody({
               },
             ];
           });
+          setInputDisabled(false);
         }
-
-        setInputDisabled(false);
       }
       if (event.event === "thread.message.completed")
         handleMessageCompleted(event);

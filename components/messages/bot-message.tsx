@@ -8,6 +8,7 @@ import "./styles.css";
 import DownloadPDFButton from "./download-pdf-button";
 import { useChatsContext } from "../../contexts/chats-context";
 import renderTableButtons from "./table-buttons";
+import TableButtons from "./table-buttons";
 
 interface BotMessageProps {
   text?: ReactNode;
@@ -161,7 +162,8 @@ function BotMessage({
         >
           {markdownTable}
         </Markdown>
-        {renderTableButtons(parsedJsonLocal)}
+        <TableButtons parsedJson={parsedJsonLocal} />
+        {/* {renderTableButtons(parsedJsonLocal)} */}
       </>
     );
   };
