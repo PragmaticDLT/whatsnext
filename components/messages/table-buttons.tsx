@@ -8,7 +8,7 @@ const TableButtons = ({ parsedJson }: { parsedJson: any }) => {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   return (
-    <div className="grid grid-cols-2 gap-2 mt-4 mb-4">
+    <div className="grid grid-cols-1 gap-2 mt-4 mb-4 sm:grid-cols-2">
       {calendarTable.map((weekData, index) => {
         return Object.entries(weekData).map(
           ([day, activity]: [string, string]) => {
