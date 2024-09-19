@@ -162,8 +162,7 @@ function BotMessage({
         >
           {markdownTable}
         </Markdown>
-        <TableButtons parsedJson={parsedJsonLocal} />
-        {/* {renderTableButtons(parsedJsonLocal)} */}
+        {/* <TableButtons parsedJson={parsedJsonLocal} /> */}
       </>
     );
   };

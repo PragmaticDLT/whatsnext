@@ -1,5 +1,6 @@
 import { useChatsContext } from "../../contexts/chats-context";
 import BotMessage from "./bot-message";
+import TableButtons from "./table-buttons";
 import renderTableButtons from "./table-buttons";
 import UserMessage from "./user-message";
 
@@ -12,6 +13,7 @@ export const MessageBody = ({
   messagesEndRef: any;
   handleSubmission: any;
 }) => {
+  const { parsedJson } = useChatsContext();
   return (
     <div className="h-full grow px-4 py-6 sm:px-6 md:px-5">
       {/* Chat msg */}
@@ -26,6 +28,9 @@ export const MessageBody = ({
                 activeQuestions={index === 0}
                 handleSendMessage={handleSubmission}
               />
+              {parsedJson && message.text?.startsWith("```json") && (
+                <TableButtons parsedJson={parsedJson} />
+              )}
             </div>
           );
         }
