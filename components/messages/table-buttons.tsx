@@ -16,7 +16,7 @@ const TableButtons = ({ parsedJson }: { parsedJson: any }) => {
 
             const [dayName, timeOfDay] = day.split(" (");
             const time = timeOfDay.replace(")", "");
-            const weekNumber = weekData.Week.split(" ")[1];
+            const weekNumber = weekData.Week.includes(" ") ? weekData.Week.split(" ")[1] : weekData.Week;
             const dropdownKey = `${index}-${day}`;
 
             return (
@@ -46,7 +46,7 @@ const CalendarButtons = ({
   parsedJson,
 }) => {
   const buttonTitle = `Schedule: ${weekData.Week}, ${dayName} (${time})`;
-
+  console.log("weekNumber", weekNumber)
   return (
     <div className="relative inline-block text-left">
       <div className=" text-black text-sm p-2 rounded-md mb-2">

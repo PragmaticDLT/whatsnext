@@ -18,11 +18,14 @@ export const createCalendarEvent = (
   const weekOffset = parseInt(weekNumber) - 1;
   const startDate = addWeeks(new Date(), weekOffset);
   const [hour, period] = time.split(" ");
+  const hourConverted = parseInt(hour);
+  const isHourNaN = isNaN(hourConverted);
   const eventHour =
-    parseInt(hour) + (period.toLowerCase() === "pm" && hour !== "12" ? 12 : 0);
-  const eventDate = setHours(setMinutes(startDate, 0), eventHour);
+    parseInt(isHourNaN ? "12" : hour) + (period?.toLowerCase() === "pm" && hour !== "12" ? 12 : 0);
+  const eventDate = setHours(setMinutes(startDate , 0), eventHour);
   const formattedDate = format(eventDate, "yyyyMMdd'T'HHmmss'Z'");
   const endDate = format(addMinutes(eventDate, 30), "yyyyMMdd'T'HHmmss'Z'");
+
 
   const eventTitle = `What's Next Check-in: #${weekNumber}`;
 
