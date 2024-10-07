@@ -1,22 +1,28 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { createCalendarEvent } from "../../hooks/useCalendarEvents";
 
 const TableButtons = ({ parsedJson }: { parsedJson: any }) => {
   if (!parsedJson || !Array.isArray(parsedJson["Calendar Table"])) return null;
 
-  const calendarTable = parsedJson["Calendar Table"];
+  const calendarTable = useMemo(
+    () => parsedJson["Calendar Table"],
+    [parsedJson]
+  );
+
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   return (
     <div className="grid grid-cols-1 gap-2 mt-4 mb-4 sm:grid-cols-2">
-      {calendarTable.map((weekData, index) => {
+      {calendarTable?.map((weekData, index) => {
         return Object.entries(weekData).map(
           ([day, activity]: [string, string]) => {
             if (day === "Week") return null;
 
             const [dayName, timeOfDay] = day.split(" (");
             const time = timeOfDay.replace(")", "");
-            const weekNumber = weekData.Week.includes(" ") ? weekData.Week.split(" ")[1] : weekData.Week;
+            const weekNumber = weekData.Week.includes(" ")
+              ? weekData.Week.split(" ")[1]
+              : weekData.Week;
             const dropdownKey = `${index}-${day}`;
 
             return (
@@ -46,7 +52,7 @@ const CalendarButtons = ({
   parsedJson,
 }) => {
   const buttonTitle = `Schedule: ${weekData.Week}, ${dayName} (${time})`;
-  console.log("weekNumber", weekNumber)
+
   return (
     <div className="relative inline-block text-left">
       <div className=" text-black text-sm p-2 rounded-md mb-2">

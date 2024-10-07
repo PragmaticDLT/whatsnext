@@ -39,7 +39,7 @@ function BotMessage({
         console.error("Error parsing JSON:", error);
       }
     }
-  }, [text, setParsedJson, parsedJson]);
+  }, [text, setParsedJson]);
 
   const renderJsonContent = (content: any) => {
     if (!content) return null;
