@@ -79,6 +79,17 @@ export default function MessagesBody({
     setActiveButtons(newActiveButtons);
   }, [quotedTexts]);
 
+  const handleError = async (error: string, type: string) => {
+    const response = await fetch(`/api/error`, {
+      method: "POST",
+      body: JSON.stringify({
+        error: error,
+        type: type,
+      }),
+    });
+    console.log(response);
+  };
+
   const sendMessage = async (
     text: string,
     assistantIdPreview: string | null
@@ -103,6 +114,7 @@ export default function MessagesBody({
       handleReadableStream(stream);
     } catch (error) {
       console.error("Error sending message:", error);
+      await handleError(JSON.stringify(error), "failed");
       setMessages((prevMessages) => {
         // Remove the last assistant message
         const newMessages = prevMessages.slice(0, -1);
@@ -147,8 +159,9 @@ export default function MessagesBody({
     stream.on("textDelta", handleTextDelta);
     stream.on("event", (event) => {
       if (event.event === "thread.run.failed") {
-        console.log(event);
+        console.log("failed:", event);
         if (event.data?.last_error?.code === "rate_limit_exceeded") {
+          handleError(JSON.stringify(event), "rate_limit_exceeded");
           setMessages((prevMessages) => {
             // Remove the last assistant message
             const newMessages = prevMessages.slice(0, -1);
@@ -165,6 +178,7 @@ export default function MessagesBody({
             setInputDisabled(false);
           }, 30000);
         } else {
+          handleError(JSON.stringify(event), "failed");
           setMessages((prevMessages) => {
             // Remove the last assistant message
             const newMessages = prevMessages.slice(0, -1);

@@ -10,4 +10,5 @@ export const buttonOptions = {
   "begin step 2": "Begin Step 2",
   regenerate: "Regenerate",
   "complete & continue": "Complete & Continue",
+  "please change my intention": "Please change my intention",
 };
