@@ -114,7 +114,7 @@ export default function MessagesBody({
       handleReadableStream(stream);
     } catch (error) {
       console.error("Error sending message:", error);
-      await handleError(JSON.stringify(error), "failed");
+      handleError(JSON.stringify(error), "failed");
       setMessages((prevMessages) => {
         // Remove the last assistant message
         const newMessages = prevMessages.slice(0, -1);
@@ -363,6 +363,7 @@ export default function MessagesBody({
         messages={messages}
         messagesEndRef={messagesEndRef}
         handleSubmission={handleSubmission}
+        setMessageInput={setMessageInput}
       />
       {testPanelOpen && (
         <TestPanel

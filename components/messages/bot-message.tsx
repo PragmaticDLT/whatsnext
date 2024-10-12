@@ -21,7 +21,7 @@ function BotMessage({
   activeQuestions,
   handleSendMessage,
 }: BotMessageProps) {
-  const { parsedJson, setParsedJson } = useChatsContext();
+  const { setParsedJson, setInputDate } = useChatsContext();
   const [parsedJsonLocal, setParsedJsonLocal] = useState<any>(null);
 
   useEffect(() => {
@@ -37,6 +37,23 @@ function BotMessage({
         setParsedJson(parsed);
       } catch (error) {
         console.error("Error parsing JSON:", error);
+      }
+    }
+    if (
+      typeof text === "string" &&
+      text.includes("Setting specific times to work on your intention")
+    ) {
+      try {
+        setInputDate({
+          active: true,
+          days: "",
+          time: "",
+          place: "",
+          start_date: "",
+          end_date: "",
+        });
+      } catch (error) {
+        console.error("Error activating the input:", error);
       }
     }
   }, [text, setParsedJson]);
