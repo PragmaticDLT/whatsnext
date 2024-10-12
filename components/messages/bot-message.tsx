@@ -9,6 +9,7 @@ import DownloadPDFButton from "./download-pdf-button";
 import { useChatsContext } from "../../contexts/chats-context";
 import renderTableButtons from "./table-buttons";
 import TableButtons from "./table-buttons";
+import { extractTextBetweenAsterisks } from "../../utils/utils";
 
 interface BotMessageProps {
   text?: ReactNode;
@@ -21,7 +22,7 @@ function BotMessage({
   activeQuestions,
   handleSendMessage,
 }: BotMessageProps) {
-  const { setParsedJson, setInputDate } = useChatsContext();
+  const { setParsedJson, setInputDate, setSpecialButtons } = useChatsContext();
   const [parsedJsonLocal, setParsedJsonLocal] = useState<any>(null);
 
   useEffect(() => {
@@ -54,6 +55,18 @@ function BotMessage({
         });
       } catch (error) {
         console.error("Error activating the input:", error);
+      }
+    }
+    if (
+      typeof text === "string" &&
+      text.includes(
+        "Congrats on making it this far! We've analyzed your answers"
+      )
+    ) {
+      try {
+        setSpecialButtons(extractTextBetweenAsterisks(text));
+      } catch (error) {
+        console.error("Error creating speacil buttons", error);
       }
     }
   }, [text, setParsedJson]);

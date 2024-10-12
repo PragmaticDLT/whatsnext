@@ -16,7 +16,7 @@ export const MessageBody = ({
   handleSubmission: any;
   setMessageInput: any;
 }) => {
-  const { parsedJson, inputDate } = useChatsContext();
+  const { parsedJson, inputDate, specialButtons } = useChatsContext();
   return (
     <div className="h-full grow px-4 py-6 sm:px-6 md:px-5">
       {/* Chat msg */}
@@ -43,6 +43,19 @@ export const MessageBody = ({
                     handleSubmission={handleSubmission}
                   />
                 )}
+              {specialButtons.length > 0 &&
+                message.text?.includes(
+                  "Congrats on making it this far! We've analyzed your answers"
+                ) &&
+                specialButtons.map((key) => (
+                  <button
+                    key={key}
+                    className="btn bg-slate-500 text-slate-100 hover:bg-slate-600 mr-2"
+                    onClick={() => handleSubmission(key)}
+                  >
+                    {key}
+                  </button>
+                ))}
             </div>
           );
         }

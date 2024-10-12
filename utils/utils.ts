@@ -54,3 +54,15 @@ export const formatThousands = (value: number): string =>
     maximumSignificantDigits: 3,
     notation: "compact",
   }).format(value);
+
+export function extractTextBetweenAsterisks(text: string) {
+  const regex = /\*\*(.*?)\*\*/g;
+  const matches = [];
+  let match;
+
+  while ((match = regex.exec(text)) !== null) {
+    matches.push(match[1]);
+  }
+
+  return matches;
+}

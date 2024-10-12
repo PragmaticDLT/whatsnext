@@ -21,6 +21,8 @@ interface ChatsContextProps {
   setParsedJson: (parsedJson: any) => void;
   inputDate: any;
   setInputDate: any;
+  specialButtons: any;
+  setSpecialButtons: any;
 }
 
 const ChatsContext = createContext<ChatsContextProps | undefined>(undefined);
@@ -44,6 +46,7 @@ export const ChatsProvider = ({
 
   const [parsedJson, setParsedJson] = useState<any>(null);
   const [inputDate, setInputDate] = useState<any>({ active: false });
+  const [specialButtons, setSpecialButtons] = useState<any>([]);
 
   useEffect(() => {
     const LocalChats = localStorage.getItem("chats");
@@ -117,6 +120,8 @@ export const ChatsProvider = ({
         setParsedJson,
         inputDate,
         setInputDate,
+        specialButtons,
+        setSpecialButtons,
       }}
     >
       {children}
