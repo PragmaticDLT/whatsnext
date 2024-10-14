@@ -7,11 +7,13 @@ const openai = new OpenAI({
 
 // Send a new message to a thread
 export async function POST(request, { params: { threadId } }) {
-  const { content, assistant_id } = await request.json();
+  const { content, assistant_id, isRefresh } = await request.json();
 
   await openai.beta.threads.messages.create(threadId, {
     role: "user",
-    content: content,
+    content: isRefresh
+      ? `Change answer for the previous question, then continue with normal flow: ${content}`
+      : content,
   });
 
   const stream = openai.beta.threads.runs.stream(threadId, {

@@ -33,6 +33,8 @@ export default function MessagesBody({
   const [messages, setMessages] = useState<any[]>([]);
   const [threadId, setThreadId] = useState("");
 
+  const [isRefresh, setIsRefresh] = useState(false);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const InputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -102,19 +104,22 @@ export default function MessagesBody({
           body: JSON.stringify({
             content: text,
             assistant_id: assistantIdPreview || assistantId,
+            isRefresh,
           }),
         }
       );
 
       if (!response.ok) {
+        setIsRefresh(false);
         throw new Error("Failed to send message");
       }
-
+      setIsRefresh(false);
       const stream = AssistantStream.fromReadableStream(response.body);
       handleReadableStream(stream);
     } catch (error) {
       console.error("Error sending message:", error);
       handleError(JSON.stringify(error), "failed");
+      setIsRefresh(false);
       setMessages((prevMessages) => {
         // Remove the last assistant message
         const newMessages = prevMessages.slice(0, -1);
@@ -131,6 +136,13 @@ export default function MessagesBody({
     }
   };
 
+  const handleRefreshQuestion = (text: string) => {
+    setIsRefresh(true);
+    setMessageInput(text);
+
+    setMessages((prevMessages) => prevMessages.slice(0, -2));
+  };
+
   const handleSubmission = (question: string) => {
     setQuotedTexts([]);
     if (
@@ -145,6 +157,11 @@ export default function MessagesBody({
       changeAssistant3();
     } else {
       sendMessage(question || messageInput, null);
+    }
+    if (question.startsWith("i'm the developer")) {
+      sendMessage(question || messageInput, null);
+      setTestPanelOpen(true);
+      localStorage.setItem("testPanel", "true");
     }
     setMessages((prevMessages) => [
       ...prevMessages,
@@ -364,12 +381,16 @@ export default function MessagesBody({
         messagesEndRef={messagesEndRef}
         handleSubmission={handleSubmission}
         setMessageInput={setMessageInput}
+        handleRefreshQuestion={handleRefreshQuestion}
       />
       {testPanelOpen && (
         <TestPanel
           changeAssistant1={changeAssistant1}
           changeAssistant2={changeAssistant2}
           changeAssistant3={changeAssistant3}
+          question={currentQuestionNumber}
+          setTestPanelOpen={setTestPanelOpen}
+          assistantId={assistantId}
         />
       )}
       <MessageInput

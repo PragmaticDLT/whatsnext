@@ -10,11 +10,13 @@ export const MessageBody = ({
   messagesEndRef,
   handleSubmission,
   setMessageInput,
+  handleRefreshQuestion,
 }: {
   messages: any[];
   messagesEndRef: any;
   handleSubmission: any;
   setMessageInput: any;
+  handleRefreshQuestion: any;
 }) => {
   const { parsedJson, inputDate, specialButtons } = useChatsContext();
   return (
@@ -22,7 +24,14 @@ export const MessageBody = ({
       {/* Chat msg */}
       {messages.map((message, index: number) => {
         if (message?.role === "user") {
-          return <UserMessage key={index} text={message?.text} />;
+          return (
+            <UserMessage
+              key={index}
+              text={message?.text}
+              last={messages.length - 2 == index}
+              handleRefreshQuestion={handleRefreshQuestion}
+            />
+          );
         } else {
           return (
             <div key={index}>
