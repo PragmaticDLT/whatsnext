@@ -93,10 +93,10 @@ function BotMessage({
       return (
         <div className="json-content">
           <p>
-            Click on the calendar button for the electronic calendar that you
-            use: Apple, Google or Outlook. Your What's Next Intention plan will
-            then be in your calendar. After you've done this, click on "OK
-            next".
+            Click on the Calendar button below. In the next screen you can click
+            on the the electronic calendar that you use: Apple, Google or
+            Outlook. Your What's Next Intention plan will then be in your
+            calendar. After you've done this, click on "OK next".
           </p>
         </div>
       );
