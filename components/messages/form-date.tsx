@@ -10,6 +10,25 @@ const FormDate = ({ handleSubmission, setMessageInput }) => {
     <div className="grid grid-cols-1 gap-2 mt-4 mb-4">
       <div>
         <label className="block text-sm font-medium mb-1" htmlFor="placeholder">
+          Your What's Next Intention:
+        </label>
+        <input
+          id="placeholder"
+          className="form-input w-full"
+          type="text"
+          placeholder="I'll do..."
+          value={inputDate.intention}
+          onChange={(e) => {
+            e.preventDefault();
+            setInputDate((date: any) => ({
+              ...date,
+              intention: e.target.value,
+            }));
+          }}
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1" htmlFor="placeholder">
           Days of the week you'll work on your What's Next Intention
         </label>
         <input
@@ -35,7 +54,7 @@ const FormDate = ({ handleSubmission, setMessageInput }) => {
           id="placeholder"
           className="form-input w-full"
           type="text"
-          placeholder="8am, 10pm, ..."
+          placeholder="8am"
           value={inputDate.time}
           onChange={(e) => {
             e.preventDefault();
@@ -77,7 +96,8 @@ const FormDate = ({ handleSubmission, setMessageInput }) => {
           onClick={(e) => {
             e.preventDefault();
             handleSubmission(
-              `* Days of the week you'll work on your What's Next Intention: ${inputDate.days}.
+              `* Your What's Next Intention: ${inputDate.intention}.
+* Days of the week you'll work on your What's Next Intention: ${inputDate.days}.
 * Time of day you'll start and end work on your What's Next Intention: ${inputDate.time}.
 * Place you'll do it: ${inputDate.place}. 
 * The date you'd like to begin: ${inputDate.start_date}.
@@ -86,6 +106,7 @@ const FormDate = ({ handleSubmission, setMessageInput }) => {
             setDisabledSend(true);
           }}
           disabled={
+            inputDate.intention == "" ||
             inputDate.days === "" ||
             inputDate.time === "" ||
             inputDate.place === "" ||

@@ -155,13 +155,12 @@ export default function MessagesBody({
         process.env.NEXT_PUBLIC_3_ASSISTANT_ID || ""
       );
       changeAssistant3();
-    } else {
-      sendMessage(question || messageInput, null);
-    }
-    if (question.startsWith("i'm the developer")) {
+    } else if (question.startsWith("i'm the developer")) {
       sendMessage(question || messageInput, null);
       setTestPanelOpen(true);
       localStorage.setItem("testPanel", "true");
+    } else {
+      sendMessage(question || messageInput, null);
     }
     setMessages((prevMessages) => [
       ...prevMessages,

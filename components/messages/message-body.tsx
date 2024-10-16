@@ -45,7 +45,7 @@ export const MessageBody = ({
               )}
               {inputDate.active &&
                 message.text?.includes(
-                  "Setting specific times to work on your intention"
+                  "now going to create a recurring calendar invite in your Apple, Google or Outlook calendar."
                 ) && (
                   <FormDate
                     setMessageInput={setMessageInput}

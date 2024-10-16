@@ -10,6 +10,7 @@ import { useChatsContext } from "../../contexts/chats-context";
 import renderTableButtons from "./table-buttons";
 import TableButtons from "./table-buttons";
 import { extractTextBetweenAsterisks } from "../../utils/utils";
+import CalendarButton from "./calendar-button";
 
 interface BotMessageProps {
   text?: ReactNode;
@@ -35,15 +36,18 @@ function BotMessage({
         const jsonContent = text.replace(/^```json\n|\n```$/g, "");
         const parsed = JSON.parse(jsonContent);
         setParsedJsonLocal(parsed);
-        setParsedJson(parsed);
+        // setParsedJson(parsed);
       } catch (error) {
         console.error("Error parsing JSON:", error);
       }
     }
     if (
       typeof text === "string" &&
-      text.includes("Setting specific times to work on your intention")
+      text.includes(
+        "now going to create a recurring calendar invite in your Apple, Google or Outlook calendar."
+      )
     ) {
+      console.log("is input");
       try {
         setInputDate({
           active: true,
@@ -52,6 +56,7 @@ function BotMessage({
           place: "",
           start_date: "",
           end_date: "",
+          intention: "",
         });
       } catch (error) {
         console.error("Error activating the input:", error);
@@ -72,6 +77,32 @@ function BotMessage({
   }, [text, setParsedJson]);
 
   const renderJsonContent = (content: any) => {
+    if (!content) return null;
+    if (content["Finalized What’s Next Intention"] && !content["Schedule"]) {
+      return (
+        <div className="json-content">
+          <p>
+            When you click on the pdf, it will open in a new tab that you can
+            print. After you've printed out your What's Next Plan, click on the
+            OK next button below
+          </p>
+        </div>
+      );
+    }
+    if (content["Schedule"]) {
+      return (
+        <div className="json-content">
+          <p>
+            Click on the calendar button for the electronic calendar that you
+            use: Apple, Google or Outlook. Your What's Next Intention plan will
+            then be in your calendar. After you've done this, click on "OK
+            next".
+          </p>
+        </div>
+      );
+    }
+  };
+  const renderJsonContent2 = (content: any) => {
     if (!content) return null;
 
     return (
@@ -302,8 +333,16 @@ function BotMessage({
             </div>
           </div>
         )}
-        {parsedJsonLocal && (
-          <DownloadPDFButton
+        {parsedJsonLocal &&
+          parsedJsonLocal["Finalized What’s Next Intention"] &&
+          !parsedJsonLocal["Schedule"] && (
+            <DownloadPDFButton
+              json={parsedJsonLocal}
+              text={JSON.stringify(parsedJsonLocal)}
+            />
+          )}
+        {parsedJsonLocal && parsedJsonLocal["Schedule"] && (
+          <CalendarButton
             json={parsedJsonLocal}
             text={JSON.stringify(parsedJsonLocal)}
           />

@@ -11,4 +11,5 @@ export const buttonOptions = {
   regenerate: "Regenerate",
   "complete & continue": "Complete & Continue",
   "please change my intention": "Please change my intention",
+  calendar: "Calendar",
 };

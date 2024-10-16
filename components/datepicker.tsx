@@ -26,8 +26,8 @@ export default function Datepicker({
     (instance.element as HTMLInputElement).value = dateStr.replace("to", "-");
     setInputDate((date: any) => ({
       ...date,
-      start_date: dateStr.split("to")[0],
-      end_date: dateStr.split("to")[1],
+      start_date: selectedDates[0],
+      end_date: selectedDates[1],
     }));
   };
 
