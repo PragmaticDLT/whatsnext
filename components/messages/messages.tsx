@@ -143,6 +143,10 @@ export default function MessagesBody({
         process.env.NEXT_PUBLIC_3_ASSISTANT_ID || ""
       );
       changeAssistant3();
+    } else if (question.startsWith("i'm the developer")) {
+      sendMessage(question || messageInput, null);
+      setTestPanelOpen(true);
+      localStorage.setItem("testPanel", "true");
     } else {
       sendMessage(question || messageInput, null);
     }
@@ -369,8 +373,12 @@ export default function MessagesBody({
           changeAssistant1={changeAssistant1}
           changeAssistant2={changeAssistant2}
           changeAssistant3={changeAssistant3}
+          question={currentQuestionNumber}
+          setTestPanelOpen={setTestPanelOpen}
+          assistantId={assistantId}
         />
       )}
+
       <MessageInput
         messageInput={messageInput}
         setMessageInput={setMessageInput}

@@ -79,7 +79,7 @@ async function createPDF(json: any) {
       height: logoHeight,
     });
 
-    page1.drawText(title, {
+    page1.drawText("WHAT'S NEXT PLAN", {
       x: 50 + logoWidth + 30,
       y: height - 45,
       size: 24,
@@ -87,7 +87,7 @@ async function createPDF(json: any) {
       color: rgb(0.57, 0.42, 0.96),
     });
 
-    page1.drawText("Finalized What's Next Intention:", {
+    page1.drawText("MY WHAT'S NEXT INTENTION:", {
       x: 50,
       y: height - 70 - logoHeight,
       size: 18,
@@ -128,7 +128,7 @@ async function createPDF(json: any) {
     yPosition -= 45;
 
     if (actionSection.length > 0) {
-      page2.drawText("Action/Habit Stacking Statements:", {
+      page2.drawText("ACTION/HABIT STACKING STATEMENTS:", {
         x: 50,
         y: yPosition,
         size: 18,
@@ -187,7 +187,7 @@ async function createPDF(json: any) {
     }
 
     if (obstaclesSection.length > 0) {
-      page2.drawText("Potential Obstacles & Strategies:", {
+      page2.drawText("POTENTIAL OBSTACLES & STRATEGIES:", {
         x: 50,
         y: yPosition,
         size: 18,
@@ -231,7 +231,7 @@ async function createPDF(json: any) {
     }
 
     if (supportSection.length > 0) {
-      page2.drawText("Support System:", {
+      page2.drawText("PEOPLE THAT CAN HELP AND SUPPORT ME:", {
         x: 50,
         y: yPosition,
         size: 18,

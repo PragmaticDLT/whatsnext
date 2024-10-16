@@ -9,6 +9,7 @@ import DownloadPDFButton from "./download-pdf-button";
 import { useChatsContext } from "../../contexts/chats-context";
 import renderTableButtons from "./table-buttons";
 import TableButtons from "./table-buttons";
+import CalendarButton from "./calendar-button";
 
 interface BotMessageProps {
   text?: ReactNode;
@@ -34,7 +35,7 @@ function BotMessage({
         const jsonContent = text.replace(/^```json\n|\n```$/g, "");
         const parsed = JSON.parse(jsonContent);
         setParsedJsonLocal(parsed);
-        setParsedJson(parsed);
+        // setParsedJson(parsed);
       } catch (error) {
         console.error("Error parsing JSON:", error);
       }
@@ -43,7 +44,32 @@ function BotMessage({
 
   const renderJsonContent = (content: any) => {
     if (!content) return null;
-
+    if (content["Finalized What’s Next Intention"] && !content["Schedule"]) {
+      return (
+        <div className="json-content">
+          <p>
+            When you click on the pdf, it will open in a new tab that you can
+            print. After you've printed out your What's Next Plan, click on the
+            OK next button below
+          </p>
+        </div>
+      );
+    }
+    if (content["Schedule"]) {
+      return (
+        <div className="json-content">
+          <p>
+            Click on the calendar button for the electronic calendar that you
+            use: Apple, Google or Outlook. Your What's Next Intention plan will
+            then be in your calendar. After you've done this, click on "OK
+            next".
+          </p>
+        </div>
+      );
+    }
+  };
+  const renderJsonContent2 = (content: any) => {
+    if (!content) return null;
     return (
       <div className="json-content">
         <h2 className="text-xl font-bold mb-4">
@@ -272,8 +298,16 @@ function BotMessage({
             </div>
           </div>
         )}
-        {parsedJsonLocal && (
-          <DownloadPDFButton
+        {parsedJsonLocal &&
+          parsedJsonLocal["Finalized What’s Next Intention"] &&
+          !parsedJsonLocal["Schedule"] && (
+            <DownloadPDFButton
+              json={parsedJsonLocal}
+              text={JSON.stringify(parsedJsonLocal)}
+            />
+          )}
+        {parsedJsonLocal && parsedJsonLocal["Schedule"] && (
+          <CalendarButton
             json={parsedJsonLocal}
             text={JSON.stringify(parsedJsonLocal)}
           />
