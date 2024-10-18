@@ -117,7 +117,7 @@ async function createPDF(json: any) {
       height: logoHeight,
     });
 
-    page2.drawText(title, {
+    page2.drawText("WHAT'S NEXT PLAN", {
       x: 50 + logoWidth + 30,
       y: yPosition,
       size: 24,
