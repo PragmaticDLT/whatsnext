@@ -3,7 +3,7 @@
 import React from "react";
 import { PDFDocument, rgb } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
-
+import { saveAs } from 'file-saver'
 interface DownloadPDFButtonProps {
   json: any;
   text: string;
@@ -271,10 +271,13 @@ export default function DownloadPDFButton({
   const handleDownload = async () => {
     const pdfBytes = await createPDF(json);
     const blob = new Blob([pdfBytes], { type: "application/pdf" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "whats_next_intention.pdf";
-    link.click();
+    
+    saveAs(blob, "whats_next_intention.pdf");
+
+    // const link = document.createElement("a");
+    // link.href = URL.createObjectURL(blob);
+    // link.download = "whats_next_intention.pdf";
+    // link.click();
   };
 
   return (
