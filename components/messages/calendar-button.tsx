@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import ModalBlank from "../modals/modal-blank";
 import ModalBasic from "../modals/modal-basic";
 import { createCalendarEvent } from "../../hooks/useCalendarEvents";
+import { saveAs } from 'file-saver'
 
 interface CalendarButtonProps {
   json?: any;
@@ -61,7 +62,10 @@ export default function CalendarButton({ json, text }: CalendarButtonProps) {
                   calendarType: "ical",
                   timezone: calendarTable["Timezone"],
                 });
-                window.open(url, "_blank");
+                // window.open(url, "_blank");
+                const blob = new Blob([url], { type: "text/calendar;charset=utf-8" });
+                saveAs(blob, "event.ics");
+                
                 setOpenCalendar(false);
               }}
             >
