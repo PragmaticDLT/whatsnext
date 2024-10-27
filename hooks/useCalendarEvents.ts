@@ -82,7 +82,7 @@ export const createCalendarEvent = ({
       )}&ctz=${encodeURIComponent(timezone)}`;
       break;
     case "ical":
-      eventUrl = `data:text/calendar;charset=utf8,BEGIN:VCALENDAR
+      eventUrl = `BEGIN:VCALENDAR
 VERSION:2.0
 BEGIN:VEVENT
 SUMMARY:${encodeURIComponent(eventTitle)}
