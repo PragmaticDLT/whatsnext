@@ -64,7 +64,12 @@ export default function CalendarButton({ json, text }: CalendarButtonProps) {
                 });
                 // window.open(url, "_blank");
                 const blob = new Blob([url], { type: "text/calendar;charset=utf-8" });
-                saveAs(blob, "event.ics");
+                const link = document.createElement("a")
+                link.href = URL.createObjectURL(blob)
+                link.download = "event.ics";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
                 
                 setOpenCalendar(false);
               }}
