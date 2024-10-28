@@ -392,6 +392,7 @@ export default function MessagesBody({
           assistantId={assistantId}
         />
       )}
+
       <MessageInput
         messageInput={messageInput}
         setMessageInput={setMessageInput}

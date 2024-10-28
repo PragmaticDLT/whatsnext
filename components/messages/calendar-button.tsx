@@ -3,6 +3,9 @@ import ModalBlank from "../modals/modal-blank";
 import ModalBasic from "../modals/modal-basic";
 import { createCalendarEvent } from "../../hooks/useCalendarEvents";
 
+import { saveAs } from 'file-saver'
+
+
 interface CalendarButtonProps {
   json?: any;
   text?: any;
@@ -61,7 +64,16 @@ export default function CalendarButton({ json, text }: CalendarButtonProps) {
                   calendarType: "ical",
                   timezone: calendarTable["Timezone"],
                 });
-                window.open(url, "_blank");
+
+                // window.open(url, "_blank");
+                const blob = new Blob([url], { type: "text/calendar;charset=utf-8" });
+                const link = document.createElement("a")
+                link.href = URL.createObjectURL(blob)
+                link.download = "event.ics";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
                 setOpenCalendar(false);
               }}
             >
