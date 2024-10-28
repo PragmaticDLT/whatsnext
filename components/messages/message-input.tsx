@@ -86,7 +86,7 @@ export const MessageInput = ({
             <textarea
               id="message-input"
               className="form-textarea w-full bg-slate-100 dark:bg-slate-800 border-transparent dark:border-transparent focus:bg-white dark:focus:bg-slate-800 placeholder-slate-500 resize-none overflow-y-auto scrollbar-hide"
-              placeholder=" Your Response or Question"
+              placeholder="Ask something"
               value={messageInput}
               onChange={(e) => {
                 setMessageInput(e.target.value);
