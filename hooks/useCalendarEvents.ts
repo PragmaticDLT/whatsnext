@@ -85,8 +85,8 @@ export const createCalendarEvent = ({
       eventUrl = `BEGIN:VCALENDAR
 VERSION:2.0
 BEGIN:VEVENT
-SUMMARY:${encodeURIComponent(eventTitle)}
-DESCRIPTION:${encodeURIComponent(description)}
+SUMMARY:${encodeURIComponent(eventTitle).replace(/%20/g, ' ')}
+DESCRIPTION:${encodeURIComponent(description).replace(/%20/g, ' ')}
 DTSTART;TZID=${timezone}:${formattedStartDate}
 DTEND;TZID=${timezone}:${formattedEndDate}
 ${rrule}
