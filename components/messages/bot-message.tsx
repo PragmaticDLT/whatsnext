@@ -97,7 +97,9 @@ function BotMessage({
             Click on the Calendar button below. In the next screen you can click
             on the the electronic calendar that you use: Apple, Google or
             Outlook. Your What's Next Intention plan will then be in your
-            calendar. After you've done this, click on "OK next".
+            calendar. Check the calendar appointment to make sure the days
+            and times you want to work on your What's Next Intention is what you want.
+            After you've done this, click on "OK next".
           </p>
         </div>
       );
@@ -243,8 +245,8 @@ function BotMessage({
         <div>
           <div className="mb-1 rounded rounded-tl-none border border-slate-200 bg-white p-3 text-sm text-slate-800 shadow-md dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100">
             {!text ||
-            text == "" ||
-            (text.startsWith("```json") && !text.endsWith("```")) ? (
+              text == "" ||
+              (text.startsWith("```json") && !text.endsWith("```")) ? (
               <svg
                 className="fill-current text-slate-400 dark:text-slate-500"
                 viewBox="0 0 15 3"

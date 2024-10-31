@@ -16,6 +16,7 @@ export default function CalendarButton({ json, text }: CalendarButtonProps) {
   const [openCalendar, setOpenCalendar] = useState(false);
 
   // const activity = Object.entries(calendarTable);
+  console.log("timee", json)
 
   return (
     <>
@@ -43,6 +44,7 @@ export default function CalendarButton({ json, text }: CalendarButtonProps) {
                   activity: json["Finalized What’s Next Intention"],
                   days: calendarTable["Days"],
                   times: calendarTable["Time"],
+                  startDate: calendarTable["Start Date"],
                   endDate: calendarTable["End Date"],
                   calendarType: "google",
                   timezone: calendarTable["Timezone"],
@@ -60,6 +62,7 @@ export default function CalendarButton({ json, text }: CalendarButtonProps) {
                   activity: json["Finalized What’s Next Intention"],
                   days: calendarTable["Days"],
                   times: calendarTable["Time"],
+                  startDate: calendarTable["Start Date"],
                   endDate: calendarTable["End Date"],
                   calendarType: "ical",
                   timezone: calendarTable["Timezone"],
@@ -86,6 +89,7 @@ export default function CalendarButton({ json, text }: CalendarButtonProps) {
                   activity: json["Finalized What’s Next Intention"],
                   days: calendarTable["Days"],
                   times: calendarTable["Time"],
+                  startDate: calendarTable["Start Date"],
                   endDate: calendarTable["End Date"],
                   calendarType: "outlook",
                   timezone: calendarTable["Timezone"],
