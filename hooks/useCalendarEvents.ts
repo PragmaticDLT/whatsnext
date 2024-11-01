@@ -51,12 +51,12 @@ export const createCalendarEvent = ({
   const startingIndex = getDayIndex(startingDate);
 
   const validDays = days
-  .map(day => ({day, index: getDayIndex(day)}))
-  .filter(({index}) => index >= startingIndex)
-  .sort((a, b)=> a.index - b.index);
+    .map(day => ({ day, index: getDayIndex(day) }))
+    .filter(({ index }) => index >= startingIndex)
+    .sort((a, b) => a.index - b.index);
 
   firstDay = validDays.length ? validDays[0].day : days[0];
-  
+
   const firstDayOffset = (7 + getDayIndex(firstDay) - new Date(start).getDay()) % 7;
   const firstEventDate = addDays(new Date(start), firstDayOffset);
 
@@ -81,7 +81,7 @@ export const createCalendarEvent = ({
     if (timezone === "East Africa Time") {
       return "Africa/Nairobi"; // Valid IANA timezone for East Africa
     }
-    return timezone; 
+    return timezone;
   }
 
   // Create a date-time with the specified hour in the local timezone
@@ -122,21 +122,19 @@ export const createCalendarEvent = ({
       )}&ctz=${encodeURIComponent(timezone)}`;
       break;
     case "ical":
-      const encodedTitle = encodeURIComponent(eventTitle);
-      const encodedDescription = encodeURIComponent(description);
+      // const encodedTitle = encodeURIComponent(eventTitle);
+      // const encodedDescription = encodeURIComponent(description);
 
       eventUrl = `BEGIN:VCALENDAR
-VERSION:2.0
-BEGIN:VEVENT
-UID: ${Date.now()}@intention-academy.thinkific.com
-DTSTAMP: ${formattedStartDate}Z
-SUMMARY:${decodeURIComponent(encodedTitle)}
-DESCRIPTION:${decodeURIComponent(encodedDescription)}
-DTSTART: ${formattedStartDate}Z
-DTEND: ${formattedEndDate}Z
-${rrule}
-END:VEVENT
-END:VCALENDAR`;
+      VERSION:2.0
+      BEGIN:VEVENT
+      SUMMARY:${encodeURIComponent(eventTitle).replace(/%20/g, ' ')}
+      DESCRIPTION:${encodeURIComponent(description).replace(/%20/g, ' ')}
+      DTSTART;TZID=${timezone}:${formattedStartDate}
+      DTEND;TZID=${timezone}:${formattedEndDate}
+      ${rrule}
+      END:VEVENT
+      END:VCALENDAR`;
       break;
     case "outlook":
       eventUrl = `https://outlook.live.com/owa/?path=/calendar/action/compose&rru=addevent&subject=${encodeURIComponent(
