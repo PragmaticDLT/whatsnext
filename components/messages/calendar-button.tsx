@@ -3,8 +3,7 @@ import ModalBlank from "../modals/modal-blank";
 import ModalBasic from "../modals/modal-basic";
 import { createCalendarEvent } from "../../hooks/useCalendarEvents";
 
-import { saveAs } from 'file-saver'
-
+import { saveAs } from "file-saver";
 
 interface CalendarButtonProps {
   json?: any;
@@ -16,7 +15,7 @@ export default function CalendarButton({ json, text }: CalendarButtonProps) {
   const [openCalendar, setOpenCalendar] = useState(false);
 
   // const activity = Object.entries(calendarTable);
-  console.log("timee", json)
+  console.log("timee", json);
 
   return (
     <>
@@ -69,7 +68,9 @@ export default function CalendarButton({ json, text }: CalendarButtonProps) {
                 });
 
                 // window.open(url, "_blank");
-                const blob = new Blob([url], { type: "text/calendar;charset=utf-8" });
+                const blob = new Blob([url], {
+                  type: "text/calendar;charset=utf-8",
+                });
 
                 saveAs(blob, "event.ics");
 

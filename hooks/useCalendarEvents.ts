@@ -51,13 +51,14 @@ export const createCalendarEvent = ({
   const startingIndex = getDayIndex(startingDate);
 
   const validDays = days
-    .map(day => ({ day, index: getDayIndex(day) }))
+    .map((day) => ({ day, index: getDayIndex(day) }))
     .filter(({ index }) => index >= startingIndex)
     .sort((a, b) => a.index - b.index);
 
   firstDay = validDays.length ? validDays[0].day : days[0];
 
-  const firstDayOffset = (7 + getDayIndex(firstDay) - new Date(start).getDay()) % 7;
+  const firstDayOffset =
+    (7 + getDayIndex(firstDay) - new Date(start).getDay()) % 7;
   const firstEventDate = addDays(new Date(start), firstDayOffset);
 
   // Convert the event starting time to a Date object in the specified timezone
@@ -69,7 +70,7 @@ export const createCalendarEvent = ({
     (period?.toLowerCase() === "pm" && hour !== "12" ? 12 : 0);
 
   // Convert the event ending time to a Date object in the specified timezone
-  const [endHour, endPeriod] = endTime.split(" ");
+  const [endHour, endPeriod] = endTime?.split(" ") || ["", ""];
   const endHourConverted = parseInt(hour);
   const isHourEndNaN = isNaN(endHourConverted);
   const eventEndHour =
@@ -90,12 +91,16 @@ export const createCalendarEvent = ({
 
   // Convert to the specified timezone using toLocaleString (For the event Starting time)
   const eventDateTimeInTimezone = new Date(
-    eventDateTime.toLocaleString("en-US", { timeZone: getIanaTimeZone(timezone) })
+    eventDateTime.toLocaleString("en-US", {
+      timeZone: getIanaTimeZone(timezone),
+    })
   );
 
   // Convert to the specified timezone using toLocaleString (For the event ending time)
   const eventEndDateTimeInTimezone = new Date(
-    eventEndDateTime.toLocaleString("en-US", { timeZone: getIanaTimeZone(timezone) })
+    eventEndDateTime.toLocaleString("en-US", {
+      timeZone: getIanaTimeZone(timezone),
+    })
   );
 
   // Format the start and end date for the calendar event
@@ -105,7 +110,9 @@ export const createCalendarEvent = ({
   );
   const formattedEndDate = format(
     // addMinutes(eventDateTimeInTimezone, 30),
-    endTime ? eventEndDateTimeInTimezone : addMinutes(eventDateTimeInTimezone, 30),
+    endTime
+      ? eventEndDateTimeInTimezone
+      : addMinutes(eventDateTimeInTimezone, 30),
     "yyyyMMdd'T'HHmmss'Z'"
   );
 
@@ -122,19 +129,24 @@ export const createCalendarEvent = ({
       )}&ctz=${encodeURIComponent(timezone)}`;
       break;
     case "ical":
-      // const encodedTitle = encodeURIComponent(eventTitle);
-      // const encodedDescription = encodeURIComponent(description);
-
       eventUrl = `BEGIN:VCALENDAR
-      VERSION:2.0
-      BEGIN:VEVENT
-      SUMMARY:${encodeURIComponent(eventTitle).replace(/%20/g, ' ')}
-      DESCRIPTION:${encodeURIComponent(description).replace(/%20/g, ' ')}
-      DTSTART;TZID=${timezone}:${formattedStartDate}
-      DTEND;TZID=${timezone}:${formattedEndDate}
+VERSION:2.0
+BEGIN:VEVENT
+SUMMARY:${encodeURIComponent(eventTitle).replace(/%20/g, " ")}
+DESCRIPTION:${encodeURIComponent(description).replace(/%20/g, " ")}
+DTSTART;TZID=${timezone}:${
+        formattedStartDate.endsWith("Z")
+          ? formattedStartDate.slice(0, -1)
+          : formattedStartDate
+      }
+DTEND;TZID=${timezone}:${
+        formattedEndDate.endsWith("Z")
+          ? formattedEndDate.slice(0, -1)
+          : formattedEndDate
+      }
       ${rrule}
-      END:VEVENT
-      END:VCALENDAR`;
+END:VEVENT
+END:VCALENDAR`;
       break;
     case "outlook":
       eventUrl = `https://outlook.live.com/owa/?path=/calendar/action/compose&rru=addevent&subject=${encodeURIComponent(
