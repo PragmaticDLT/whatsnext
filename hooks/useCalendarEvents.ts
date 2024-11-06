@@ -165,7 +165,7 @@ END:VCALENDAR`;
       )}&body=${encodeURIComponent(
         description
       )}&startdt=${encodeURIComponent(outLookFormatStartDate)}&enddt=${encodeURIComponent(outLookFormatEndDate)}&recur=${encodeURIComponent(
-        "DTSTART:20120201T093000Z\nRRULE:FREQ=WEEKLY;INTERVAL=5;WKST=0;UNTIL=20130130T230000Z;BYDAY=MO,FR;BYHOUR=10;BYMINUTE=30;BYSECOND=0"
+        rrule
       )}`);
 
       break;
