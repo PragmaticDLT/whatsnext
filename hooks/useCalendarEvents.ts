@@ -127,8 +127,7 @@ export const createCalendarEvent = ({
     eventEndDateTimeInTimezone,
     "yyyy-MM-dd'T'HH:mm:ss"
   )
-  const testDate = "2025-12-05T12:00:00"
-  // console.log("formattedStartDate", testFormat)
+
   // Generate the event link based on the calendar type
   let eventUrl = "";
   switch (calendarType) {
@@ -155,7 +154,7 @@ DTEND;TZID=${timezone}:${formattedEndDate.endsWith("Z")
           ? formattedEndDate.slice(0, -1)
           : formattedEndDate
         }
-      ${rrule}
+${rrule}
 END:VEVENT
 END:VCALENDAR`;
       break;
