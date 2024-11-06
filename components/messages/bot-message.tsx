@@ -37,7 +37,7 @@ function BotMessage({
         const jsonContent = text.replace(/^```json\n|\n```$/g, "");
         const parsed = JSON.parse(jsonContent);
         setParsedJsonLocal(parsed);
-        // setParsedJson(parsed);
+        setParsedJson(parsed);
       } catch (error) {
         console.error("Error parsing JSON:", error);
       }

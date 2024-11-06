@@ -36,10 +36,7 @@ export const createCalendarEvent = ({
   const daysOfWeek = ["SU", "MO", "TU", "WE", "TH", "FR", "SA"];
   const rruleDays = days.map((day) => daysOfWeek[getDayIndex(day)]).join(",");
 
-  const rrule = `RRULE:FREQ=WEEKLY;BYDAY=${rruleDays};UNTIL=${format(
-    end,
-    "yyyyMMdd'T'HHmmss'Z'"
-  )}`;
+  const rrule = `RRULE:FREQ=WEEKLY;BYDAY=${rruleDays}`;
 
   // Calculate first occurrence date and time
   // const [firstDay, firstTime, endTime] = [days[0], times[0], times[1]];
@@ -62,7 +59,8 @@ export const createCalendarEvent = ({
   const firstEventDate = addDays(new Date(start), firstDayOffset);
 
   // Convert the event starting time to a Date object in the specified timezone
-  const [hour, period] = firstTime.split(" ");
+  const [time, period] = firstTime.split(" ");
+  const [hour, minute] = time.split(":");
   const hourConverted = parseInt(hour);
   const isHourNaN = isNaN(hourConverted);
   const eventHour =
@@ -70,7 +68,8 @@ export const createCalendarEvent = ({
     (period?.toLowerCase() === "pm" && hour !== "12" ? 12 : 0);
 
   // Convert the event ending time to a Date object in the specified timezone
-  const [endHour, endPeriod] = endTime?.split(" ") || ["", ""];
+  const [endingTime, endPeriod] = endTime?.split(" ") || ["", ""];
+  const [endHour, endMinute] = endingTime.split(":");
   const endHourConverted = parseInt(hour);
   const isHourEndNaN = isNaN(endHourConverted);
   const eventEndHour =
@@ -78,7 +77,7 @@ export const createCalendarEvent = ({
     (endPeriod?.toLowerCase() === "pm" && endHour !== "12" ? 12 : 0);
 
   // Added because the calander is giving error when the time zone is East african time
-  function getIanaTimeZone(timezone) {
+  function getIanaTimeZone(timezone: string) {
     if (timezone === "East Africa Time") {
       return "Africa/Nairobi"; // Valid IANA timezone for East Africa
     }
@@ -86,36 +85,50 @@ export const createCalendarEvent = ({
   }
 
   // Create a date-time with the specified hour in the local timezone
-  let eventDateTime = setHours(setMinutes(firstEventDate, 0), eventHour);
-  let eventEndDateTime = setHours(setMinutes(firstEventDate, 0), eventEndHour);
+  let eventDateTime = setHours(setMinutes(firstEventDate, Number(minute)), eventHour);
+  let eventEndDateTime = setHours(setMinutes(firstEventDate, Number(endMinute)), eventEndHour);
 
   // Convert to the specified timezone using toLocaleString (For the event Starting time)
   const eventDateTimeInTimezone = new Date(
     eventDateTime.toLocaleString("en-US", {
-      timeZone: getIanaTimeZone(timezone),
+      // timeZone: getIanaTimeZone(timezone),
     })
   );
 
   // Convert to the specified timezone using toLocaleString (For the event ending time)
   const eventEndDateTimeInTimezone = new Date(
     eventEndDateTime.toLocaleString("en-US", {
-      timeZone: getIanaTimeZone(timezone),
+      // timeZone: getIanaTimeZone(timezone),
     })
   );
 
   // Format the start and end date for the calendar event
   const formattedStartDate = format(
     eventDateTimeInTimezone,
-    "yyyyMMdd'T'HHmmss'Z'"
+    "yyyyMMdd'T'HHmmss"
   );
   const formattedEndDate = format(
     // addMinutes(eventDateTimeInTimezone, 30),
     endTime
       ? eventEndDateTimeInTimezone
       : addMinutes(eventDateTimeInTimezone, 30),
-    "yyyyMMdd'T'HHmmss'Z'"
+    // "yyyyMMdd'T'HHmmss'Z'"
+    "yyyyMMdd'T'HHmmss"
+
   );
 
+  // Event start and end date format for outlook
+  const outLookFormatStartDate = format(
+    eventDateTimeInTimezone,
+    "yyyy-MM-dd'T'HH:mm:ss"
+  )
+  
+  const outLookFormatEndDate = format(
+    eventEndDateTimeInTimezone,
+    "yyyy-MM-dd'T'HH:mm:ss"
+  )
+  const testDate = "2025-12-05T12:00:00"
+  // console.log("formattedStartDate", testFormat)
   // Generate the event link based on the calendar type
   let eventUrl = "";
   switch (calendarType) {
@@ -126,36 +139,35 @@ export const createCalendarEvent = ({
         description
       )}&dates=${formattedStartDate}/${formattedEndDate}&recur=${encodeURIComponent(
         rrule
-      )}&ctz=${encodeURIComponent(timezone)}`;
+      )}`;
       break;
     case "ical":
       eventUrl = `BEGIN:VCALENDAR
 VERSION:2.0
 BEGIN:VEVENT
-SUMMARY:${encodeURIComponent(eventTitle).replace(/%20/g, " ")}
-DESCRIPTION:${encodeURIComponent(description).replace(/%20/g, " ")}
-DTSTART;TZID=${timezone}:${
-        formattedStartDate.endsWith("Z")
+SUMMARY:${eventTitle}
+DESCRIPTION:${description}
+DTSTART;TZID=${timezone}:${formattedStartDate.endsWith("Z")
           ? formattedStartDate.slice(0, -1)
           : formattedStartDate
-      }
-DTEND;TZID=${timezone}:${
-        formattedEndDate.endsWith("Z")
+        }
+DTEND;TZID=${timezone}:${formattedEndDate.endsWith("Z")
           ? formattedEndDate.slice(0, -1)
           : formattedEndDate
-      }
+        }
       ${rrule}
 END:VEVENT
 END:VCALENDAR`;
       break;
     case "outlook":
-      eventUrl = `https://outlook.live.com/owa/?path=/calendar/action/compose&rru=addevent&subject=${encodeURIComponent(
+      eventUrl = encodeURI(`https://outlook.live.com/owa/?path=/calendar/action/compose&rru=addevent&subject=${encodeURIComponent(
         eventTitle
       )}&body=${encodeURIComponent(
         description
-      )}&startdt=${formattedStartDate}&enddt=${formattedEndDate}&recur=${encodeURIComponent(
-        rrule
-      )}&timezone=${encodeURIComponent(timezone)}`;
+      )}&startdt=${encodeURIComponent(outLookFormatStartDate)}&enddt=${encodeURIComponent(outLookFormatEndDate)}&recur=${encodeURIComponent(
+        "DTSTART:20120201T093000Z\nRRULE:FREQ=WEEKLY;INTERVAL=5;WKST=0;UNTIL=20130130T230000Z;BYDAY=MO,FR;BYHOUR=10;BYMINUTE=30;BYSECOND=0"
+      )}`);
+
       break;
     default:
       throw new Error("Unsupported calendar type");

@@ -19,6 +19,7 @@ export const MessageBody = ({
   handleRefreshQuestion: any;
 }) => {
   const { parsedJson, inputDate, specialButtons } = useChatsContext();
+  
   return (
     <div className="h-full grow px-4 py-6 sm:px-6 md:px-5">
       {/* Chat msg */}
