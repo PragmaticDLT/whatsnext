@@ -193,11 +193,11 @@ const FormDate = ({ handleSubmission, setMessageInput }) => {
         <label className="block text-sm font-medium mb-1" htmlFor="placeholder">
           Time of day you'll start actions on your What's Next intention
         </label>
-        <div className="flex flex-wrap border bg-white w-[30%] justify-between">
-          <input className="border-none w-[25%]" placeholder="Hour" onChange={(e) => handleStartTimeChange(e, 'startHour')} />
+        <div className="flex flex-wrap border bg-white md:w-[35%] justify-between">
+          <input className="border-none w-[25%] text-[14px]" placeholder="Hour" onChange={(e) => handleStartTimeChange(e, 'startHour')} />
           <span className="font-bold text-[30px]">:</span>
-          <input className="border-none w-[27%] " type="number" placeholder="minute" onChange={(e) => handleStartTimeChange(e, 'startMinute')} />
-          <select className="border-none w-[25%]" onChange={(e) => handleStartTimeChange(e, 'startPeriod')}>
+          <input className="border-none w-[27%] pl-[0px] text-[14px]" type="number" placeholder="minute" onChange={(e) => handleStartTimeChange(e, 'startMinute')} />
+          <select className="border-none w-[25%] text-[14px]" onChange={(e) => handleStartTimeChange(e, 'startPeriod')}>
             <option value='am'>AM</option>
             <option value='pm'>PM</option>
           </select>
@@ -246,11 +246,11 @@ const FormDate = ({ handleSubmission, setMessageInput }) => {
         <label className="block text-sm font-medium mb-1" htmlFor="placeholder">
           Time of day you'll end actions on your What's Next intention
         </label>
-        <div className="flex flex-wrap border bg-white w-[30%] justify-between">
-          <input className="border-none w-[25%]" placeholder="Hour" onChange={(e) => handleStartTimeChange(e, 'endHour')} />
+        <div className="flex flex-wrap border bg-white md:w-[35%] justify-between">
+          <input className="border-none w-[25%] text-[14px]" placeholder="Hour" onChange={(e) => handleStartTimeChange(e, 'endHour')} />
           <span className="font-bold text-[30px]">:</span>
-          <input className="border-none w-[27%] " type="number" placeholder="minute" onChange={(e) => handleStartTimeChange(e, 'endMinute')} />
-          <select className="border-none w-[25%]" onChange={(e) => handleStartTimeChange(e, 'endPeriod')}>
+          <input className="border-none w-[27%] pl-[0px] text-[14px]" type="number" placeholder="minute" onChange={(e) => handleStartTimeChange(e, 'endMinute')} />
+          <select className="border-none w-[25%] text-[14px]" onChange={(e) => handleStartTimeChange(e, 'endPeriod')}>
             <option value='am'>AM</option>
             <option value='pm'>PM</option>
           </select>
