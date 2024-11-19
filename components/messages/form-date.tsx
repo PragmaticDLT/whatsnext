@@ -34,8 +34,6 @@ const FormDate = ({ handleSubmission, setMessageInput }) => {
     if (!selectedDays.includes(selectedDay)) {
       // const selectedDay = Array.from(e.target.selectedOptions, (option: any) => option.value);
       setSelectedDays((prevItems: any) => [...prevItems, selectedDay]);
-      console.log("selectedDays.find((a)=> a === selectedDay)", selectedDays.find((a) => a === selectedDay))
-
       setInputDate((date: any) => ({
         ...date,
         days: date.days ? `${date.days},${selectedDay}` : selectedDay,
@@ -82,7 +80,7 @@ const FormDate = ({ handleSubmission, setMessageInput }) => {
     }
   }
 
-  console.log("inputDate", inputDate)
+  console.log("input", inputDate)
   return (
     <div className="grid grid-cols-1 gap-2 mt-4 mb-4">
       <div>
@@ -95,13 +93,13 @@ const FormDate = ({ handleSubmission, setMessageInput }) => {
           // type="text"
           // placeholder="I'll do..."
           value={parsedJson["Finalized What’s Next Intention"]}
-          // onChange={(e) => {
-          //   e.preventDefault();
-          //   setInputDate((date: any) => ({
-          //     ...date,
-          //     intention: intention,
-          //   }));
-          // }}
+        // onChange={(e) => {
+        //   e.preventDefault();
+        //   setInputDate((date: any) => ({
+        //     ...date,
+        //     intention: intention,
+        //   }));
+        // }}
         >
 
         </textarea>
@@ -122,9 +120,26 @@ const FormDate = ({ handleSubmission, setMessageInput }) => {
       </div>
       <div>
         <label className="block text-sm font-medium mb-1" htmlFor="placeholder">
-          Days of the week you'll work on your What's Next Intention
+          Day of the week you'll work on your What's Next Intention
         </label>
-        <div onClick={toggleDropdown} style={{
+        <select className="" value={inputDate.days}
+          onChange={(e) => {
+            e.preventDefault();
+            setInputDate((date: any) => ({
+              ...date,
+              days: e.target.value,
+            }));
+          }}>
+          <option>Select Day of the Week...</option>
+          <option value="Sunday">Sunday</option>
+          <option value="Monday">Monday</option>
+          <option value="Tuesday">Tuesday</option>
+          <option value="Wednesday">Wednesday</option>
+          <option value="Thursday">Thursday</option>
+          <option value="Friday">Friday</option>
+          <option value="Saturday">Saturday</option>
+        </select>
+        {/* <div onClick={toggleDropdown} style={{
           border: "1px solid #ccc",
           padding: "8px",
           cursor: "pointer",
@@ -172,24 +187,9 @@ const FormDate = ({ handleSubmission, setMessageInput }) => {
               </option>
             ))}
           </select>
-        )}
-
-        {/* <input
-          id="placeholder"
-          className="form-input w-full"
-          type="text"
-          placeholder="Tuesday, Friday, ..."
-          value={inputDate.days}
-          onChange={(e) => {
-            e.preventDefault();
-            setInputDate((date: any) => ({
-              ...date,
-              days: e.target.value,
-            }));
-          }}
-        /> */}
+        )} */}
       </div>
-      <div>
+      {/* <div>
         <label className="block text-sm font-medium mb-1" htmlFor="placeholder">
           Time of day you'll start actions on your What's Next intention
         </label>
@@ -202,45 +202,6 @@ const FormDate = ({ handleSubmission, setMessageInput }) => {
             <option value='pm'>PM</option>
           </select>
         </div>
-        {/* <div className="flex ">
-          <div className="flex flex-wrap">
-            <label>Start Time:</label>
-            <input />
-            <span className="font-bold text-[30px]">:</span>
-            <input className="w-[10%] h-full" type="number" />
-            <select>
-              <option>AM</option>
-              <option>PM</option>
-            </select>
-          </div>
-          <span>-</span>
-          <div className="flex flex-wrap">
-            <label>End Time:</label>
-            <input />
-            <span className="font-bold text-[30px]">:</span>
-            <input className="w-[10%] h-full" type="number" />
-
-            <select>
-              <option>AM</option>
-              <option>PM</option>
-            </select>
-          </div>
-
-        </div> */}
-        {/* <input
-          id="placeholder"
-          className="form-input w-full"
-          type="text"
-          placeholder="8am"
-          value={inputDate.time}
-          onChange={(e) => {
-            e.preventDefault();
-            setInputDate((date: any) => ({
-              ...date,
-              time: e.target.value,
-            }));
-          }}
-        /> */}
       </div>
       <div>
         <label className="block text-sm font-medium mb-1" htmlFor="placeholder">
@@ -255,12 +216,33 @@ const FormDate = ({ handleSubmission, setMessageInput }) => {
             <option value='pm'>PM</option>
           </select>
         </div>
-      </div>
+      </div> */}
       <div>
         <label className="block text-sm font-medium mb-1">
           Place you'll do it
         </label>
-        <input
+        <select className=""
+          value={inputDate.place}
+          onChange={(e) => {
+            e.preventDefault();
+            setInputDate((date: any) => ({
+              ...date,
+              place: e.target.value,
+            }));
+          }}>
+          <option>Select place you will do it</option>
+          <option value="Home office">Home office</option>
+          <option value="Reading nook">Reading nook</option>
+          <option value="Living Room">Living Room</option>
+          <option value="Kitchen">Kitchen</option>
+          <option value="Bedroom">Bedroom</option>
+          <option value="Couch">Couch</option>
+          <option value="Outside somewhere nice">Outside somewhere nice</option>
+          <option value="Work">Work</option>
+          <option value="Coffee shop near me">Coffee shop near me</option>
+          <option value="Other">Other</option>
+        </select>
+        {/* <input
           id="placeholder"
           className="form-input w-full"
           type="text"
@@ -273,12 +255,11 @@ const FormDate = ({ handleSubmission, setMessageInput }) => {
               place: e.target.value,
             }));
           }}
-        />
+        /> */}
       </div>
       <div>
         <label className="block text-sm font-medium mb-1">
-          The date you'd like to begin and the date you plan to have fulfilled
-          your intention.
+          The date you'd like to begin your intention.
         </label>
         <Datepicker setInputDate={setInputDate} />
       </div>
@@ -289,25 +270,24 @@ const FormDate = ({ handleSubmission, setMessageInput }) => {
             handleSubmission(
               `* Your What's Next Intention: ${inputDate.intention}.
 * Days of the week you'll work on your What's Next Intention: ${inputDate.days}.
-* Time of day you'll start and end work on your What's Next Intention: ${inputDate.time}.
 * Place you'll do it: ${inputDate.place}. 
 * The date you'd like to begin: ${inputDate.start_date}.
-* The date you plan to have fulfilled your intention: ${inputDate.end_date}.`
+* You should plan to fulfill your intention: Within the next 6 weeks.`
             );
             setDisabledSend(true);
           }}
           disabled={
             inputDate.intention == "" ||
             inputDate.days === "" ||
-            inputDate.time === "" ||
+            // inputDate.time === "" ||
             inputDate.place === "" ||
             inputDate.start_date === "" ||
-            inputDate.end_date === "" ||
+            // inputDate.end_date === "" ||
             disabledSend
           }
           className="btn bg-indigo-500 hover:bg-indigo-600 text-white whitespace-nowrap h-10"
         >
-          Send -&gt;
+          Generate Calendar Invite -&gt;
         </button>
       </div>
     </div>

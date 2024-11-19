@@ -6,14 +6,15 @@ import {
   parseISO,
   isAfter,
   addDays,
+  addWeeks,
 } from "date-fns";
 
 interface RepeatingEvent {
   activity: string;
-  days: string[]; // e.g., ["Monday", "Wednesday"]
-  times: string[]; // e.g., ["8:00 AM"]
+  days: string; // e.g., ["Monday", "Wednesday"]
+  // times: string[]; // e.g., ["8:00 AM"]
   startDate: string;
-  endDate: string; // ISO format date "yyyy-MM-dd"
+  // endDate: string; // ISO format date "yyyy-MM-dd"
   calendarType: "google" | "ical" | "outlook";
   timezone: string; // Timezone identifier, e.g., "America/Argentina/Buenos_Aires"
 }
@@ -21,112 +22,140 @@ interface RepeatingEvent {
 export const createCalendarEvent = ({
   activity,
   days,
-  times,
+  // times,
   startDate,
-  endDate,
+  // endDate,
   calendarType,
   timezone,
 }: RepeatingEvent) => {
   const start = parseISO(startDate);
-  const end = parseISO(endDate);
+  // const end = parseISO(endDate);
   const eventTitle = "Work on my What's Next Intention";
   const description = activity.trim();
 
   // Generate RRULE string for weekly recurrence on specific days
   const daysOfWeek = ["SU", "MO", "TU", "WE", "TH", "FR", "SA"];
-  const rruleDays = days.map((day) => daysOfWeek[getDayIndex(day)]).join(",");
+  // const rruleDays = days.map((day) => daysOfWeek[getDayIndex(day)]).join(",");
 
-  const rrule = `RRULE:FREQ=WEEKLY;BYDAY=${rruleDays}`;
+  // const rrule = `RRULE:FREQ=WEEKLY;BYDAY=${rruleDays}`;
+
+  // Get users selected starting day of the week 
+  const rruleDay = daysOfWeek[getDayIndex(days[0])];
+
+  console.log("rruleDay", startDate)
+  const rrule = `RRULE:FREQ=WEEKLY;BYDAY=${rruleDay}`;
+  console.log("rrule", rrule)
+
 
   // Calculate first occurrence date and time
   // const [firstDay, firstTime, endTime] = [days[0], times[0], times[1]];
-  const [firstTime, endTime] = [times[0], times[1]];
+  // const [firstTime, endTime] = [times[0], times[1]];
 
   // To identify the nearest day regarding the selected starting date
-  let firstDay = "";
+  // let firstDay = "";
   const startingDate = start.toLocaleDateString("en-US", { weekday: "long" });
   const startingIndex = getDayIndex(startingDate);
 
-  const validDays = days
-    .map((day) => ({ day, index: getDayIndex(day) }))
-    .filter(({ index }) => index >= startingIndex)
-    .sort((a, b) => a.index - b.index);
+  // const validDays = days
+  //   .map((day) => ({ day, index: getDayIndex(day) }))
+  //   .filter(({ index }) => index >= startingIndex)
+  //   .sort((a, b) => a.index - b.index);
 
-  firstDay = validDays.length ? validDays[0].day : days[0];
+  // firstDay = validDays.length ? validDays[0].day : days[0];
 
   const firstDayOffset =
-    (7 + getDayIndex(firstDay) - new Date(start).getDay()) % 7;
+    (7 + getDayIndex(days[0]) - new Date(start).getDay()) % 7;
   const firstEventDate = addDays(new Date(start), firstDayOffset);
 
+  const eventEndDate = addWeeks(firstEventDate, 6); // setting default event end date to 6 week
+  console.log("eventEndDate", eventEndDate)
+
   // Convert the event starting time to a Date object in the specified timezone
-  const [time, period] = firstTime.split(" ");
-  const [hour, minute] = time.split(":");
-  const hourConverted = parseInt(hour);
-  const isHourNaN = isNaN(hourConverted);
-  const eventHour =
-    parseInt(isHourNaN ? "12" : hour) +
-    (period?.toLowerCase() === "pm" && hour !== "12" ? 12 : 0);
+  // const [time, period] = firstTime.split(" ");
+  // const [hour, minute] = time.split(":");
+  // const hourConverted = parseInt(hour);
+  // const isHourNaN = isNaN(hourConverted);
+  // const eventHour =
+  //   parseInt(isHourNaN ? "12" : hour) +
+  //   (period?.toLowerCase() === "pm" && hour !== "12" ? 12 : 0);
 
-  // Convert the event ending time to a Date object in the specified timezone
-  const [endingTime, endPeriod] = endTime?.split(" ") || ["", ""];
-  const [endHour, endMinute] = endingTime.split(":");
-  const endHourConverted = parseInt(hour);
-  const isHourEndNaN = isNaN(endHourConverted);
-  const eventEndHour =
-    parseInt(isHourEndNaN ? "12" : endHour) +
-    (endPeriod?.toLowerCase() === "pm" && endHour !== "12" ? 12 : 0);
+  // // Convert the event ending time to a Date object in the specified timezone
+  // const [endingTime, endPeriod] = endTime?.split(" ") || ["", ""];
+  // const [endHour, endMinute] = endingTime.split(":");
+  // const endHourConverted = parseInt(hour);
+  // const isHourEndNaN = isNaN(endHourConverted);
+  // const eventEndHour =
+  //   parseInt(isHourEndNaN ? "12" : endHour) +
+  //   (endPeriod?.toLowerCase() === "pm" && endHour !== "12" ? 12 : 0);
 
-  // Added because the calander is giving error when the time zone is East african time
-  function getIanaTimeZone(timezone: string) {
-    if (timezone === "East Africa Time") {
-      return "Africa/Nairobi"; // Valid IANA timezone for East Africa
-    }
-    return timezone;
-  }
+  // // Added because the calander is giving error when the time zone is East african time
+  // function getIanaTimeZone(timezone: string) {
+  //   if (timezone === "East Africa Time") {
+  //     return "Africa/Nairobi"; // Valid IANA timezone for East Africa
+  //   }
+  //   return timezone;
+  // }
 
-  // Create a date-time with the specified hour in the local timezone
-  let eventDateTime = setHours(setMinutes(firstEventDate, Number(minute)), eventHour);
-  let eventEndDateTime = setHours(setMinutes(firstEventDate, Number(endMinute)), eventEndHour);
+  // // Create a date-time with the specified hour in the local timezone
+  // let eventDateTime = setHours(setMinutes(firstEventDate, Number(minute)), eventHour);
+  // let eventEndDateTime = setHours(setMinutes(firstEventDate, Number(endMinute)), eventEndHour);
 
   // Convert to the specified timezone using toLocaleString (For the event Starting time)
-  const eventDateTimeInTimezone = new Date(
-    eventDateTime.toLocaleString("en-US", {
-      // timeZone: getIanaTimeZone(timezone),
-    })
-  );
+  // const eventDateTimeInTimezone = new Date(
+  //   eventDateTime.toLocaleString("en-US", {
+  //   })
+  // );
 
-  // Convert to the specified timezone using toLocaleString (For the event ending time)
-  const eventEndDateTimeInTimezone = new Date(
-    eventEndDateTime.toLocaleString("en-US", {
-      // timeZone: getIanaTimeZone(timezone),
-    })
-  );
+  // // Convert to the specified timezone using toLocaleString (For the event ending time)
+  // const eventEndDateTimeInTimezone = new Date(
+  //   eventEndDateTime.toLocaleString("en-US", {
+  //   })
+  // );
 
   // Format the start and end date for the calendar event
+  // const formattedStartDate = format(
+  //   eventDateTimeInTimezone,
+  //   "yyyyMMdd'T'HHmmss"
+  // );
+  // const formattedEndDate = format(
+  //   // addMinutes(eventDateTimeInTimezone, 30),
+  //   endTime
+  //     ? eventEndDateTimeInTimezone
+  //     : addMinutes(eventDateTimeInTimezone, 30),
+  //   // "yyyyMMdd'T'HHmmss'Z'"
+  //   "yyyyMMdd'T'HHmmss"
+
+  // );
+
   const formattedStartDate = format(
-    eventDateTimeInTimezone,
-    "yyyyMMdd'T'HHmmss"
+    firstEventDate,
+    "yyyyMMdd"
   );
   const formattedEndDate = format(
-    // addMinutes(eventDateTimeInTimezone, 30),
-    endTime
-      ? eventEndDateTimeInTimezone
-      : addMinutes(eventDateTimeInTimezone, 30),
-    // "yyyyMMdd'T'HHmmss'Z'"
-    "yyyyMMdd'T'HHmmss"
-
+    eventEndDate,
+    "yyyyMMdd"
   );
 
   // Event start and end date format for outlook
   const outLookFormatStartDate = format(
-    eventDateTimeInTimezone,
-    "yyyy-MM-dd'T'HH:mm:ss"
+    firstEventDate,
+    "yyyy-MM-dd"
   )
-  
+
   const outLookFormatEndDate = format(
-    eventEndDateTimeInTimezone,
-    "yyyy-MM-dd'T'HH:mm:ss"
+    eventEndDate,
+    "yyyy-MM-dd"
   )
+  // // Event start and end date format for outlook
+  // const outLookFormatStartDate = format(
+  //   eventDateTimeInTimezone,
+  //   "yyyy-MM-dd'T'HH:mm:ss"
+  // )
+
+  // const outLookFormatEndDate = format(
+  //   eventEndDateTimeInTimezone,
+  //   "yyyy-MM-dd'T'HH:mm:ss"
+  // )
 
   // Generate the event link based on the calendar type
   let eventUrl = "";

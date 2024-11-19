@@ -11,32 +11,32 @@ export default function Datepicker({
   setInputDate?: any;
 }) {
   const onReady: Hook = (selectedDates, dateStr, instance) => {
-    (instance.element as HTMLInputElement).value = dateStr.replace("to", "-");
+    (instance.element as HTMLInputElement).value = dateStr;
     const customClass = align ?? "";
     instance.calendarContainer.classList.add(`flatpickr-${customClass}`);
     setInputDate((date: any) => ({
       ...date,
-      start_date: dateStr.split("to")[0],
-      end_date: dateStr.split("to")[1],
+      start_date: dateStr,
+      // end_date: dateStr.split("to")[1],
     }));
   };
 
   const onChange: Hook = (selectedDates, dateStr, instance) => {
     // console.log(selectedDates); // time utf
-    (instance.element as HTMLInputElement).value = dateStr.replace("to", "-");
+    (instance.element as HTMLInputElement).value = dateStr;
     setInputDate((date: any) => ({
       ...date,
       start_date: selectedDates[0],
-      end_date: selectedDates[1],
+      // end_date: selectedDates[1],
     }));
   };
 
   const options: Options = {
-    mode: "range",
+    mode: "single",
     static: true,
     monthSelectorType: "static",
     dateFormat: "M j, Y",
-    defaultDate: [new Date().setDate(new Date().getDate() - 6), new Date()],
+    defaultDate: new Date(),
     prevArrow:
       '<svg class="fill-current" width="7" height="11" viewBox="0 0 7 11"><path d="M5.4 10.8l1.4-1.4-4-4 4-4L5.4 0 0 5.4z" /></svg>',
     nextArrow:
