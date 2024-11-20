@@ -24,7 +24,14 @@ const FormDate = ({ handleSubmission, setMessageInput }) => {
         <textarea
           id="placeholder"
           className="form-input w-full"
-          value={parsedJson["Finalized What’s Next Intention"]}
+          value={inputDate.intention}
+          onChange={(e) => {
+            e.preventDefault();
+            setInputDate((date: any) => ({
+              ...date,
+              intention: e.target.value,
+            }));
+          }}
         >
 
         </textarea>
