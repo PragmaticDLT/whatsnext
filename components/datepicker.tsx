@@ -17,7 +17,6 @@ export default function Datepicker({
     setInputDate((date: any) => ({
       ...date,
       start_date: dateStr,
-      // end_date: dateStr.split("to")[1],
     }));
   };
 
@@ -27,7 +26,6 @@ export default function Datepicker({
     setInputDate((date: any) => ({
       ...date,
       start_date: selectedDates[0],
-      // end_date: selectedDates[1],
     }));
   };
 

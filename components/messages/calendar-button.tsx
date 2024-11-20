@@ -14,9 +14,6 @@ export default function CalendarButton({ json, text }: CalendarButtonProps) {
   const calendarTable = useMemo(() => json["Schedule"], [json]);
   const [openCalendar, setOpenCalendar] = useState(false);
 
-  // const activity = Object.entries(calendarTable);
-  console.log("timee", json);
-
   return (
     <>
       <button
@@ -42,9 +39,7 @@ export default function CalendarButton({ json, text }: CalendarButtonProps) {
                 const url = createCalendarEvent({
                   activity: json["Finalized What’s Next Intention"],
                   days: calendarTable["Days"],
-                  // times: calendarTable["Time"],
                   startDate: calendarTable["Start Date"],
-                  // endDate: calendarTable["End Date"],
                   calendarType: "google",
                   timezone: calendarTable["Timezone"],
                 });
@@ -60,27 +55,14 @@ export default function CalendarButton({ json, text }: CalendarButtonProps) {
                 const url = createCalendarEvent({
                   activity: json["Finalized What’s Next Intention"],
                   days: calendarTable["Days"],
-                  // times: calendarTable["Time"],
                   startDate: calendarTable["Start Date"],
-                  // endDate: calendarTable["End Date"],
                   calendarType: "ical",
                   timezone: calendarTable["Timezone"],
                 });
-
-                // window.open(url, "_blank");
                 const blob = new Blob([url], {
                   type: "text/calendar;charset=utf-8",
                 });
-
                 saveAs(blob, "event.ics");
-
-                // const link = document.createElement("a")
-                // link.href = URL.createObjectURL(blob)
-                // link.download = "event.ics";
-                // document.body.appendChild(link);
-                // link.click();
-                // document.body.removeChild(link);
-
                 setOpenCalendar(false);
               }}
             >
@@ -92,9 +74,7 @@ export default function CalendarButton({ json, text }: CalendarButtonProps) {
                 const url = createCalendarEvent({
                   activity: json["Finalized What’s Next Intention"],
                   days: calendarTable["Days"],
-                  // times: calendarTable["Time"],
                   startDate: calendarTable["Start Date"],
-                  // endDate: calendarTable["End Date"],
                   calendarType: "outlook",
                   timezone: calendarTable["Timezone"],
                 });

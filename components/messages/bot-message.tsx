@@ -53,10 +53,8 @@ function BotMessage({
         setInputDate({
           active: true,
           days: "",
-          time: "",
           place: "",
           start_date: "",
-          end_date: "",
           intention: "",
         });
       } catch (error) {
