@@ -6,14 +6,6 @@ const FormDate = ({ handleSubmission, setMessageInput }) => {
   const { inputDate, setInputDate, parsedJson } = useChatsContext();
   const [disabledSend, setDisabledSend] = useState(false);
 
-  // To set users intention on the intention input field by default
-  useEffect(() => {
-    setInputDate((date: any) => ({
-      ...date,
-      intention: parsedJson["Finalized What’s Next Intention"],
-    }));
-  }, [parsedJson])
-
   console.log("input", inputDate)
   return (
     <div className="grid grid-cols-1 gap-2 mt-4 mb-4">

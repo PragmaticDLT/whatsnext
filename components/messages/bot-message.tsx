@@ -24,7 +24,7 @@ function BotMessage({
   activeQuestions,
   handleSendMessage,
 }: BotMessageProps) {
-  const { setParsedJson, setInputDate, setSpecialButtons } = useChatsContext();
+  const { setParsedJson, parsedJson, setInputDate, setSpecialButtons } = useChatsContext();
   const [parsedJsonLocal, setParsedJsonLocal] = useState<any>(null);
 
   useEffect(() => {
@@ -55,7 +55,7 @@ function BotMessage({
           days: "",
           place: "",
           start_date: "",
-          intention: "",
+          intention: parsedJson["Finalized What’s Next Intention"],
         });
       } catch (error) {
         console.error("Error activating the input:", error);
