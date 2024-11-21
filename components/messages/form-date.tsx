@@ -6,7 +6,6 @@ const FormDate = ({ handleSubmission, setMessageInput }) => {
   const { inputDate, setInputDate, parsedJson } = useChatsContext();
   const [disabledSend, setDisabledSend] = useState(false);
 
-  console.log("input", inputDate)
   return (
     <div className="grid grid-cols-1 gap-2 mt-4 mb-4">
       <div>

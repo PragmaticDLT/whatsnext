@@ -31,9 +31,7 @@ export const createCalendarEvent = ({
   // Generate RRULE string for weekly recurrence on specific days
   const daysOfWeek = ["SU", "MO", "TU", "WE", "TH", "FR", "SA"];
 
-  // Get users selected starting day of the week 
-  const rruleDay = daysOfWeek[getDayIndex(days[0])];
-  const rrule = `RRULE:FREQ=WEEKLY;BYDAY=${rruleDay}`;
+
 
   const firstDayOffset =
     (7 + getDayIndex(days[0]) - new Date(start).getDay()) % 7;
@@ -41,6 +39,12 @@ export const createCalendarEvent = ({
   const firstEventDate = addDays(new Date(start), firstDayOffset);
   const eventEndDate = addWeeks(firstEventDate, 6); // setting default event end date to 6 week
 
+  // Get users selected starting day of the week 
+  const rruleDay = daysOfWeek[getDayIndex(days[0])];
+  const rrule = `RRULE:FREQ=WEEKLY;BYDAY=${rruleDay};UNTIL=${format(
+    eventEndDate,
+    "yyyyMMdd"
+  )}`;
   const formattedStartDate = format(
     firstEventDate,
     "yyyyMMdd"
