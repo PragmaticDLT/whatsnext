@@ -11,9 +11,9 @@ export default function Datepicker({
   setInputDate?: any;
 }) {
   const onReady: Hook = (selectedDates, dateStr, instance) => {
-    (instance.element as HTMLInputElement).value = dateStr;
     const customClass = align ?? "";
-    instance.calendarContainer.classList.add(`flatpickr-${customClass}`);
+    instance.calendarContainer?.classList.add(`flatpickr-${customClass}`);
+    (instance.element as HTMLInputElement).value = dateStr;
     setInputDate((date: any) => ({
       ...date,
       start_date: dateStr,
@@ -21,13 +21,13 @@ export default function Datepicker({
   };
 
   const onChange: Hook = (selectedDates, dateStr, instance) => {
-    // console.log(selectedDates); // time utf
     (instance.element as HTMLInputElement).value = dateStr;
     setInputDate((date: any) => ({
       ...date,
       start_date: selectedDates[0],
     }));
   };
+
 
   const options: Options = {
     mode: "single",
@@ -36,6 +36,7 @@ export default function Datepicker({
     dateFormat: "M j, Y",
     defaultDate: new Date(),
     minDate: new Date(),
+    disableMobile: true,
     prevArrow:
       '<svg class="fill-current" width="7" height="11" viewBox="0 0 7 11"><path d="M5.4 10.8l1.4-1.4-4-4 4-4L5.4 0 0 5.4z" /></svg>',
     nextArrow:

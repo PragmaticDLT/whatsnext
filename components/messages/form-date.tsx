@@ -6,6 +6,12 @@ const FormDate = ({ handleSubmission, setMessageInput }) => {
   const { inputDate, setInputDate, parsedJson } = useChatsContext();
   const [disabledSend, setDisabledSend] = useState(false);
 
+  useEffect(() => {
+    setInputDate((date: any) => ({
+      ...date,
+      intention: parsedJson["Finalized What’s Next Intention"],
+    }));
+  },[inputDate.days])
   return (
     <div className="grid grid-cols-1 gap-2 mt-4 mb-4">
       <div>
@@ -15,14 +21,7 @@ const FormDate = ({ handleSubmission, setMessageInput }) => {
         <textarea
           id="placeholder"
           className="form-input w-full"
-          value={inputDate.intention}
-          onChange={(e) => {
-            e.preventDefault();
-            setInputDate((date: any) => ({
-              ...date,
-              intention: e.target.value,
-            }));
-          }}
+          defaultValue={parsedJson["Finalized What’s Next Intention"]}
         >
 
         </textarea>

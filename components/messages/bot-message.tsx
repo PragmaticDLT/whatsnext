@@ -55,7 +55,7 @@ function BotMessage({
           days: "",
           place: "",
           start_date: "",
-          intention: parsedJson["Finalized What’s Next Intention"],
+          intention: "",
         });
       } catch (error) {
         console.error("Error activating the input:", error);
