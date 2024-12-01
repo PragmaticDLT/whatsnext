@@ -143,7 +143,7 @@ export default function MessagesBody({
         process.env.NEXT_PUBLIC_3_ASSISTANT_ID || ""
       );
       changeAssistant3();
-    } else if (question.startsWith("i'm the developer")) {
+    } else if (question.startsWith("i'm the developer") || question.startsWith("i’m the developer")) {
       sendMessage(question || messageInput, null);
       setTestPanelOpen(true);
       localStorage.setItem("testPanel", "true");

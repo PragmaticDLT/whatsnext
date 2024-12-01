@@ -1,6 +1,6 @@
 import Image from "next/image";
 import User01 from "../../public/images/WNChat.png";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
@@ -24,7 +24,13 @@ function BotMessage({
 }: BotMessageProps) {
   const { parsedJson, setParsedJson } = useChatsContext();
   const [parsedJsonLocal, setParsedJsonLocal] = useState<any>(null);
+  const videoRef = useRef(null);
 
+  // To automatically start the question when the video ends
+  const handleEndVideo = () => {
+    handleSendMessage("Start the questions")
+  }
+  
   useEffect(() => {
     if (
       typeof text === "string" &&
@@ -207,8 +213,8 @@ function BotMessage({
         <div>
           <div className="mb-1 rounded rounded-tl-none border border-slate-200 bg-white p-3 text-sm text-slate-800 shadow-md dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100">
             {!text ||
-            text == "" ||
-            (text.startsWith("```json") && !text.endsWith("```")) ? (
+              text == "" ||
+              (text.startsWith("```json") && !text.endsWith("```")) ? (
               <svg
                 className="fill-current text-slate-400 dark:text-slate-500"
                 viewBox="0 0 15 3"
@@ -245,40 +251,52 @@ function BotMessage({
               </svg>
             ) : parsedJsonLocal ? (
               renderJsonContent(parsedJsonLocal)
-            ) : (
-              <Markdown
-                urlTransform={(url) => url}
-                remarkPlugins={[remarkGfm, remarkBreaks]}
-                components={{
-                  table: ({ children, ...props }) => (
-                    <table
-                      className="my-4"
-                      style={{ width: "100%", border: "1px solid #555" }}
-                      {...props}
-                    >
-                      {children}
-                    </table>
-                  ),
-                  a: ({ children, href, ...props }) => {
-                    if (href?.startsWith("http"))
-                      return (
-                        <a href={href} {...props}>
+            ) : text.startsWith("Hey! Hello! Welcome") ? (
+              <video ref={videoRef} onEnded={handleEndVideo} autoPlay controls width="640" className="xs:h-[400px] w-full">
+                <source src="/videos/start.mp4" type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>) : text.startsWith("We recommend taking a 15 to 20 minute break") ?
+              (<video ref={videoRef} autoPlay controls width="640" className="xs:h-[400px] w-full">
+                <source src="/videos/break.mp4" type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>) : text.includes("Congrats, you’ve completed the What's Next Next Life Coaching part of this Course!") ?
+                (<video ref={videoRef} autoPlay controls width="640" className="xs:h-[400px] w-full">
+                  <source src="/videos/end.mp4" type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>) : (
+                  <Markdown
+                    urlTransform={(url) => url}
+                    remarkPlugins={[remarkGfm, remarkBreaks]}
+                    components={{
+                      table: ({ children, ...props }) => (
+                        <table
+                          className="my-4"
+                          style={{ width: "100%", border: "1px solid #555" }}
+                          {...props}
+                        >
                           {children}
-                        </a>
-                      );
-                  },
-                  code: ({ children, ...props }) => (
-                    <code className="my-4" {...props}>
-                      {children}
-                    </code>
-                  ),
-                }}
-              >
-                {typeof text === "string" && /\|[-|]+\|/.test(text)
-                  ? text
-                  : text?.replace(/\n/gi, "\n &nbsp;")}
-              </Markdown>
-            )}
+                        </table>
+                      ),
+                      a: ({ children, href, ...props }) => {
+                        if (href?.startsWith("http"))
+                          return (
+                            <a href={href} {...props}>
+                              {children}
+                            </a>
+                          );
+                      },
+                      code: ({ children, ...props }) => (
+                        <code className="my-4" {...props}>
+                          {children}
+                        </code>
+                      ),
+                    }}
+                  >
+                    {typeof text === "string" && /\|[-|]+\|/.test(text)
+                      ? text
+                      : text?.replace(/\n/gi, "\n &nbsp;")}
+                  </Markdown>
+                )}
           </div>
           <div className="flex items-center justify-between"></div>
         </div>
