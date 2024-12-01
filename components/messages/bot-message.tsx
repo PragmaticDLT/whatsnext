@@ -295,40 +295,44 @@ function BotMessage({
               (<video ref={videoRef} autoPlay controls width="640" className="xs:h-[400px] w-full">
                 <source src="/videos/break.mp4" type="video/mp4" />
                 Your browser does not support the video tag.
-              </video>) : (
-                <Markdown
-                  urlTransform={(url) => url}
-                  remarkPlugins={[remarkGfm, remarkBreaks]}
-                  components={{
-                    table: ({ children, ...props }) => (
-                      <table
-                        className="my-4"
-                        style={{ width: "100%", border: "1px solid #555" }}
-                        {...props}
-                      >
-                        {children}
-                      </table>
-                    ),
-                    a: ({ children, href, ...props }) => {
-                      if (href?.startsWith("http"))
-                        return (
-                          <a href={href} {...props}>
-                            {children}
-                          </a>
-                        );
-                    },
-                    code: ({ children, ...props }) => (
-                      <code className="my-4" {...props}>
-                        {children}
-                      </code>
-                    ),
-                  }}
-                >
-                  {typeof text === "string" && /\|[-|]+\|/.test(text)
-                    ? text
-                    : text?.replace(/\n/gi, "\n &nbsp;")}
-                </Markdown>
-              )}
+              </video>) : text.includes("Congrats, you’ve completed the What's Next Next Life Coaching part of this Course!") ?
+                (<video ref={videoRef} autoPlay controls width="640" className="xs:h-[400px] w-full">
+                  <source src="/videos/end.mp4" type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>) : (
+                  <Markdown
+                    urlTransform={(url) => url}
+                    remarkPlugins={[remarkGfm, remarkBreaks]}
+                    components={{
+                      table: ({ children, ...props }) => (
+                        <table
+                          className="my-4"
+                          style={{ width: "100%", border: "1px solid #555" }}
+                          {...props}
+                        >
+                          {children}
+                        </table>
+                      ),
+                      a: ({ children, href, ...props }) => {
+                        if (href?.startsWith("http"))
+                          return (
+                            <a href={href} {...props}>
+                              {children}
+                            </a>
+                          );
+                      },
+                      code: ({ children, ...props }) => (
+                        <code className="my-4" {...props}>
+                          {children}
+                        </code>
+                      ),
+                    }}
+                  >
+                    {typeof text === "string" && /\|[-|]+\|/.test(text)
+                      ? text
+                      : text?.replace(/\n/gi, "\n &nbsp;")}
+                  </Markdown>
+                )}
 
           </div>
           <div className="flex items-center justify-between"></div>
