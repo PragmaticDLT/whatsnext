@@ -281,10 +281,10 @@ export default function MessagesBody({
   const handleMessageCompleted = async (event) => {
     setInputDisabled(false);
     const messageText = event.data.content[0].text.value;
-    if (!messageText?.startsWith("Hey! Hello! Welcome to the interactive part of the course")
-      || !messageText?.startsWith("We recommend taking a 15 to 20 minute break")
-      || !messageText?.includes("Congrats, you’ve completed the What's Next Next Life Coaching part of this Course!")
-      || !messageText?.includes("That's all the questions! Great job!")) {
+    if (!(messageText?.startsWith("Hey! Hello! Welcome to the interactive part of the course")
+      || messageText?.startsWith("We recommend taking a 15 to 20 minute break")
+      || messageText?.includes("Congrats, you’ve completed the What's Next Next Life Coaching part of this Course!")
+      || messageText?.includes("That's all the questions! Great job!"))) {
       handleGenerateAudio(event.data.content[0].text.value)
     }
     currentQuestionNumber < 14
@@ -413,7 +413,6 @@ export default function MessagesBody({
 
   return (
     <div className="flex h-full grow flex-col transition-transform duration-300 ease-in-out md:translate-x-0 w-full">
-      {/* <button onClick={()=> handleGenerateAudio("hello there how are you my name is meseker and how can i help you with")}>Test Audio</button> */}
       <MessageBody
         messages={messages}
         messagesEndRef={messagesEndRef}
