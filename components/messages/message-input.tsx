@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { buttonOptions } from "../../constants/buttonOptions";
 import { useChatsContext } from "../../contexts/chats-context";
 
@@ -11,6 +11,9 @@ export const MessageInput = ({
   messages,
   quotedTexts,
   currentQuestionNumber,
+  audioRef,
+  isPlaying,
+  setIsPlaying
 }: {
   messageInput: string;
   setMessageInput: (messageInput: string) => void;
@@ -20,8 +23,18 @@ export const MessageInput = ({
   messages: any[];
   quotedTexts: any[];
   currentQuestionNumber: number;
+  audioRef: any,
+  isPlaying: boolean,
+  setIsPlaying: (isPlaying: boolean) => void
 }) => {
   const { activeButtons } = useChatsContext();
+  const [isRecording, setIsRecording] = useState<boolean>(false);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
+  const [barHeights, setBarHeights] = useState(new Array(38).fill(4));
+  const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
+  const [audioAnalyser, setAudioAnalyser] = useState<AnalyserNode | null>(null);
+  const [style, setStyles] = useState({})
 
   const adjustTextareaHeight = () => {
     if (InputRef?.current) {
@@ -29,7 +42,6 @@ export const MessageInput = ({
       InputRef.current.style.height = `${InputRef.current.scrollHeight}px`;
     }
   };
-
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
       e.preventDefault();
@@ -40,14 +52,240 @@ export const MessageInput = ({
     }
   };
 
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      setMediaRecorder(recorder);
+      setIsRecording(true);
+
+      const chunks: Blob[] = [];
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          chunks.push(e.data);
+        }
+      };
+
+      recorder.onstop = async () => {
+        const audioBlob = new Blob(chunks, { type: 'audio/webm' });
+        await handleAudioSubmission(audioBlob);
+        setAudioChunks([]);
+      };
+
+      recorder.start(1000); // Collect data in 1-second chunks
+    } catch (err) {
+      console.error("Error accessing microphone:", err);
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder && mediaRecorder.state !== "inactive") {
+      mediaRecorder.stop();
+      mediaRecorder.stream.getTracks().forEach((track: MediaStreamTrack) => track.stop());
+      setIsRecording(false);
+    }
+  };
+
+  const handleAudioSubmission = async (audioBlob: Blob) => {
+    try {
+      const formData = new FormData();
+      formData.append("file", audioBlob, "audio.webm");
+      formData.append("model", "whisper-1");
+
+      const response = await fetch("/api/upload-audio", {
+        method: "POST",
+
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to transcribe audio");
+      }
+
+      const data = await response.json();
+      if (data.text) {
+        setMessageInput(data.text)
+      }
+    } catch (error) {
+      console.error("Error transcribing audio:", error);
+    }
+  };
+
   useEffect(() => {
     if (messageInput.length <= 0) {
       adjustTextareaHeight();
     }
   }, [messageInput]);
 
+  // To start the sound wave animation when the audio starts
+  useEffect(() => {
+    if (!audioAnalyser || !isPlaying) return;
+
+    const dataArray = new Uint8Array(audioAnalyser.frequencyBinCount);
+    console.log("dataArray", dataArray.length)
+    const updateHeights = () => {
+      audioAnalyser.getByteFrequencyData(dataArray);
+      const newHeights = Array(38).fill(0).map((_, i) => {
+        const dataIndex = Math.floor((i / 38) * dataArray.length);
+        if (i < 8) {
+          return Math.max(4, Math.min(10, (dataArray[dataIndex] / 255) * 20));
+        }
+        // Last 8 bars - smaller height changes
+        else if (i >= 30) {
+          return Math.max(4, Math.min(10, (dataArray[dataIndex] / 255) * 20));
+        }
+        // Middle section - larger height changes
+        else {
+          return Math.max(4, (dataArray[dataIndex] / 255) * 38);
+        }
+      });
+      setBarHeights(newHeights);
+
+      if (isPlaying) {
+        requestAnimationFrame(updateHeights);
+      }
+    };
+
+    updateHeights();
+
+    return () => {
+      if (!isPlaying) {
+        setBarHeights(new Array(38).fill(4));
+      }
+    };
+  }, [audioAnalyser, isPlaying]);
+
+  // To start the yellow glowing effect behid the microphone icon based on the intexity of the voulume
+  useEffect(() => {
+    if (!audioRef.current) return;
+
+    const handlePlay = async () => {
+      if (!audioContext) {
+        const newAudioContext = new AudioContext();
+        const newAnalyser = newAudioContext.createAnalyser();
+        const source = newAudioContext.createMediaElementSource(audioRef.current!);
+
+        source.connect(newAnalyser);
+        newAnalyser.connect(newAudioContext.destination);
+        newAnalyser.fftSize = 64;
+
+        setAudioContext(newAudioContext);
+        setAudioAnalyser(newAnalyser);
+      }
+    };
+
+    const handleStop = () => {
+      if (audioContext) {
+        //  audioContext.close();
+        setIsPlaying(false);
+      }
+    };
+
+    audioRef.current.addEventListener('play', handlePlay);
+    audioRef.current.addEventListener('pause', handleStop);
+    audioRef.current.addEventListener('ended', handleStop);
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.removeEventListener('play', handlePlay);
+        audioRef.current.removeEventListener('pause', handleStop);
+        audioRef.current.removeEventListener('ended', handleStop);
+      }
+    };
+  }, [audioRef, audioContext]);
+
+  useEffect(() => {
+    if (!mediaRecorder || !isRecording) return;
+
+    const audioContext = new AudioContext();
+    const analyser = audioContext.createAnalyser();
+    const source = audioContext.createMediaStreamSource(mediaRecorder.stream);
+
+    source.connect(analyser);
+    analyser.fftSize = 32;
+
+    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+    const updateBackgroundLight = () => {
+      analyser.getByteFrequencyData(dataArray);
+      // Calculate average volume level from frequency data
+      const averageVolume = dataArray.reduce((acc, val) => acc + val, 0) / dataArray.length;
+      // Convert to percentage (0-100) for brightness
+      const brightness = Math.min(100, (averageVolume / 255) * 100);
+      // Set background glow intensity based on volume
+      const glowIntensity = Math.max(20, brightness);
+      const backgroundColor = `rgba(255, 165, 0, ${brightness / 100})`;
+      const boxShadow = `0 0 ${glowIntensity}px rgba(255, 193, 7, ${brightness / 100})`;
+
+      setStyles({
+        backgroundColor,
+        boxShadow
+      });
+
+      if (isRecording) {
+        requestAnimationFrame(updateBackgroundLight);
+      }
+    };
+
+    updateBackgroundLight();
+
+    return () => {
+      source.disconnect();
+      setStyles({
+        backgroundColor: 'transparent',
+        boxShadow: 'none'
+      });
+    };
+  }, [isRecording, mediaRecorder]);
+
   return (
-    <div className="sticky bottom-0 w-full">
+    <div className="sticky bottom-0 w-full ">
+      <div className="flex justify-center items-center gap-2 bg-[#c0c0c0] m-auto md:w-[30%] w-[90%] p-2 rounded-[3px] mb-2">
+        {/* Speaker icon */}
+        <button className={`btn ${isPlaying ? 'bg-black' : 'bg-[#a0a0a0]'}  hover:bg-gray-600 text-white rounded-full w-10 h-10 flex items-center justify-center mr-2`}>
+          <object data="/svg/speaker.svg" width='20px' height='20px'></object>
+        </button>
+        <audio ref={audioRef} controls style={{ marginTop: "10px", display: "none" }}>
+          Your browser does not support the audio element.
+        </audio>
+
+        {/* Sound wave animation */}
+        <div className="flex items-center gap-1 w-48 h-8">
+          {isPlaying && (
+            <>
+              {barHeights.map((height, i) => {
+                return (
+                  <div
+                    key={i}
+                    className=" bg-black w-[1px]"
+                    style={{
+                      height: `${height}px`,
+                      transition: 'height 100ms ease'
+                    }}
+                  />
+                );
+              })}
+            </>
+          )}
+        </div>
+        <div style={style} className="p-2 rounded-full">
+          {/* Microphone button */}
+          <button
+            className={`btn ${isRecording ? 'bg-black' : 'bg-[#a0a0a0] hover:bg-black'} text-white rounded-full w-10 h-10 flex items-center justify-center`}
+            onClick={isRecording ? stopRecording : startRecording}
+            disabled={inputDisabled}
+          >
+            {isRecording ? (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="#ffa500">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+            </svg>) : (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+            </svg>)}
+
+          </button>
+        </div>
+
+      </div>
       {messages.length > 2 && (
         <div className="flex flex-wrap gap-2 py-2 px-4 bg-transparent">
           {activeButtons.map((key) => (
@@ -66,14 +304,14 @@ export const MessageInput = ({
           ))}
           {((quotedTexts.includes("thought starter") && messages.length > 4) ||
             (currentQuestionNumber <= 14 && currentQuestionNumber >= 1)) && (
-            <button
-              className="btn bg-slate-500 text-slate-100 hover:bg-slate-600"
-              onClick={() => handleSubmission("Thought starter")}
-              disabled={inputDisabled}
-            >
-              Thought starter
-            </button>
-          )}
+              <button
+                className="btn bg-slate-500 text-slate-100 hover:bg-slate-600"
+                onClick={() => handleSubmission("Thought starter")}
+                disabled={inputDisabled}
+              >
+                Thought starter
+              </button>
+            )}
         </div>
       )}
       <div className="flex min-h-16 items-center justify-between border-t border-slate-200 bg-white px-4 dark:border-slate-700 dark:bg-slate-900 sm:px-6 md:px-5 py-2">

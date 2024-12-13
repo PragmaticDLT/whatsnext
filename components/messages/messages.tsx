@@ -43,17 +43,16 @@ export default function MessagesBody({
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
-
   useEffect(() => {
     !chatSelected
       ? setMessages([
-          {
-            id: generateId(),
-            status: "first.bot.message",
-            text: "Welcome!!!",
-            role: "assistant",
-          },
-        ])
+        {
+          id: generateId(),
+          status: "first.bot.message",
+          text: "Welcome!!!",
+          role: "assistant",
+        },
+      ])
       : setMessages(chatSelected.messages);
   }, [chatSelected]);
 
@@ -92,6 +91,41 @@ export default function MessagesBody({
     console.log(response);
   };
 
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef(null);
+
+  const handleGenerateAudio = async (message: string) => {
+    setIsPlaying(false);
+
+    try {
+      const res = await fetch("/api/read-audio", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          response: message
+        })
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch audio");
+      }
+
+      const audioBlob = await res.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+      if (audioRef.current) {
+        (audioRef.current as HTMLAudioElement).src = audioUrl;
+        setIsPlaying(true);
+        (audioRef.current as HTMLAudioElement).play();
+      }
+    } catch (error) {
+      console.error("Error generating audio:", error);
+    }
+  };
+  // useEffect(()=> {
+  // handleGenerateAudio("hello there how are you my name is meseker and how can i help you with")
+  // },[])
   const sendMessage = async (
     text: string,
     assistantIdPreview: string | null
@@ -246,14 +280,18 @@ export default function MessagesBody({
 
   const handleMessageCompleted = async (event) => {
     setInputDisabled(false);
-
     const messageText = event.data.content[0].text.value;
-
+    if (!messageText?.startsWith("Hey! Hello! Welcome to the interactive part of the course")
+      || !messageText?.startsWith("We recommend taking a 15 to 20 minute break")
+      || !messageText?.includes("Congrats, you’ve completed the What's Next Next Life Coaching part of this Course!")
+      || !messageText?.includes("That's all the questions! Great job!")) {
+      handleGenerateAudio(event.data.content[0].text.value)
+    }
     currentQuestionNumber < 14
       ? checkForLastQuestionNumber(messageText)
       : currentQuestionNumber == 14
-      ? changeAssistant2()
-      : null;
+        ? changeAssistant2()
+        : null;
 
     extractQuotedTexts(messageText);
 
@@ -375,6 +413,7 @@ export default function MessagesBody({
 
   return (
     <div className="flex h-full grow flex-col transition-transform duration-300 ease-in-out md:translate-x-0 w-full">
+      {/* <button onClick={()=> handleGenerateAudio("hello there how are you my name is meseker and how can i help you with")}>Test Audio</button> */}
       <MessageBody
         messages={messages}
         messagesEndRef={messagesEndRef}
@@ -402,6 +441,9 @@ export default function MessagesBody({
         messages={messages}
         quotedTexts={quotedTexts}
         currentQuestionNumber={currentQuestionNumber}
+        audioRef={audioRef}
+        isPlaying={isPlaying}
+        setIsPlaying={setIsPlaying}
       />
     </div>
   );
