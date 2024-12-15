@@ -230,8 +230,28 @@ async function createPDF(json: any) {
       }
     }
 
+    // Third page
+    const page3 = pdfDoc.addPage();
+    yPosition = height - 45;
+
+    page3.drawImage(logoImage, {
+      x: 50,
+      y: height - 20 - logoHeight,
+      width: logoWidth,
+      height: logoHeight,
+    });
+
+    page3.drawText("WHAT'S NEXT PLAN", {
+      x: 50 + logoWidth + 30,
+      y: yPosition,
+      size: 24,
+      font: monoramaFont,
+      color: rgb(0.57, 0.42, 0.96),
+    });
+
+    yPosition -= 45;
     if (supportSection.length > 0) {
-      page2.drawText("PEOPLE THAT CAN HELP AND SUPPORT ME:", {
+      page3.drawText("PEOPLE THAT CAN HELP AND SUPPORT ME:", {
         x: 50,
         y: yPosition,
         size: 18,
@@ -246,7 +266,7 @@ async function createPDF(json: any) {
           12
         );
         supportLines.forEach((line) => {
-          page2.drawText(line, {
+          page3.drawText(line, {
             x: 50,
             y: yPosition,
             size: 12,
@@ -271,7 +291,7 @@ export default function DownloadPDFButton({
   const handleDownload = async () => {
     const pdfBytes = await createPDF(json);
     const blob = new Blob([pdfBytes], { type: "application/pdf" });
-    
+
     saveAs(blob, "whats_next_intention.pdf");
 
     // const link = document.createElement("a");

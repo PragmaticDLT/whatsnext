@@ -38,6 +38,9 @@ export default function MessagesBody({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const InputRef = useRef<HTMLTextAreaElement>(null);
 
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef(null);
+
   useEffect(() => {
     if (messages.length > 1) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -91,9 +94,6 @@ export default function MessagesBody({
     console.log(response);
   };
 
-  const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef(null);
-
   const handleGenerateAudio = async (message: string) => {
     setIsPlaying(false);
 
@@ -123,9 +123,7 @@ export default function MessagesBody({
       console.error("Error generating audio:", error);
     }
   };
-  // useEffect(()=> {
-  // handleGenerateAudio("hello there how are you my name is meseker and how can i help you with")
-  // },[])
+
   const sendMessage = async (
     text: string,
     assistantIdPreview: string | null
@@ -281,10 +279,11 @@ export default function MessagesBody({
   const handleMessageCompleted = async (event) => {
     setInputDisabled(false);
     const messageText = event.data.content[0].text.value;
-    if (!(messageText?.startsWith("Hey! Hello! Welcome to the interactive part of the course")
+    if (!(messageText?.startsWith("Hey! Hello! Welcome")
       || messageText?.startsWith("We recommend taking a 15 to 20 minute break")
       || messageText?.includes("Congrats, you’ve completed the What's Next Next Life Coaching part of this Course!")
-      || messageText?.includes("That's all the questions! Great job!"))) {
+      || messageText?.includes("That's all the questions! Great job!")
+      || messageText?.startsWith("That's a tough challenge!"))) {
       handleGenerateAudio(event.data.content[0].text.value)
     }
     currentQuestionNumber < 14

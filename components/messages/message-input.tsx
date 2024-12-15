@@ -123,7 +123,6 @@ export const MessageInput = ({
     if (!audioAnalyser || !isPlaying) return;
 
     const dataArray = new Uint8Array(audioAnalyser.frequencyBinCount);
-    console.log("dataArray", dataArray.length)
     const updateHeights = () => {
       audioAnalyser.getByteFrequencyData(dataArray);
       const newHeights = Array(38).fill(0).map((_, i) => {
