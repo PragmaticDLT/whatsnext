@@ -21,10 +21,9 @@ export async function POST(req: Request) {
     const audioBuffer = Buffer.from(audioBytes);
 
     const response = await openai.audio.transcriptions.create({
-      file: new File([audioBuffer], 'audio.webm', { type: file.type }),
+      file: new File([audioBuffer], `audio.${file.type.split('/')[1]}`, { type: file.type }),
       model: 'whisper-1',
     });
-
     return NextResponse.json({ text: response.text });
 
   } catch (error) {
