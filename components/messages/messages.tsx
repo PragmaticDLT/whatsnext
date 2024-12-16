@@ -438,18 +438,17 @@ export default function MessagesBody({
             <button
               className="btn bg-indigo-500 hover:bg-indigo-600 text-white"
               onClick={() => {
-                // Play a silent audio first to get permission
-                const audio = new Audio("data:audio/mpeg;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA");
-                audio.play().then(() => {
-                  setHasUserInteracted(true);
-                  localStorage.setItem('audioPermissionGranted', 'true');
-                  setShowAudioPrompt(false);
-                  // Play the actual message audio
-                  handleGenerateAudio(startMessage);
-                }).catch(error => {
-                  console.error('Failed to enable audio:', error);
-                  setShowAudioPrompt(false);
-                });
+                // Direct attempt to play the message audio on iOS
+                handleGenerateAudio(startMessage)
+                  .then(() => {
+                    setHasUserInteracted(true);
+                    localStorage.setItem('audioPermissionGranted', 'true');
+                    setShowAudioPrompt(false);
+                  })
+                  .catch(error => {
+                    console.error('Failed to enable audio:', error);
+                    setShowAudioPrompt(false);
+                  });
               }}
             >
               Enable Audio
