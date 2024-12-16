@@ -439,7 +439,7 @@ export default function MessagesBody({
               className="btn bg-indigo-500 hover:bg-indigo-600 text-white"
               onClick={() => {
                 // Play a silent audio first to get permission
-                const audio = new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA");
+                const audio = new Audio("data:audio/mpeg;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA");
                 audio.play().then(() => {
                   setHasUserInteracted(true);
                   localStorage.setItem('audioPermissionGranted', 'true');
