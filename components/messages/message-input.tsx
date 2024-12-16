@@ -145,44 +145,6 @@ export const MessageInput = ({
     }
   }, [messageInput]);
 
-  // To start the sound wave animation when the audio starts
-  useEffect(() => {
-    if (!audioAnalyser || !isPlaying) return;
-
-    const dataArray = new Uint8Array(audioAnalyser.frequencyBinCount);
-    const updateHeights = () => {
-      audioAnalyser.getByteFrequencyData(dataArray);
-      const newHeights = Array(38).fill(0).map((_, i) => {
-        const dataIndex = Math.floor((i / 38) * dataArray.length);
-        if (i < 8) {
-          return Math.max(4, Math.min(10, (dataArray[dataIndex] / 255) * 20));
-        }
-        // Last 8 bars - smaller height changes
-        else if (i >= 30) {
-          return Math.max(4, Math.min(10, (dataArray[dataIndex] / 255) * 20));
-        }
-        // Middle section - larger height changes
-        else {
-          return Math.max(4, (dataArray[dataIndex] / 255) * 38);
-        }
-      });
-      setBarHeights(newHeights);
-
-      if (isPlaying) {
-        requestAnimationFrame(updateHeights);
-      }
-    };
-
-    updateHeights();
-
-    return () => {
-      if (!isPlaying) {
-        setBarHeights(new Array(38).fill(4));
-      }
-    };
-  }, [audioAnalyser, isPlaying]);
-
-  // To start the yellow glowing effect behid the microphone icon based on the intexity of the voulume
   useEffect(() => {
     if (!audioRef.current) return;
 
@@ -221,6 +183,45 @@ export const MessageInput = ({
     };
   }, [audioRef, audioContext]);
 
+  // To start the sound wave animation when the audio starts
+  useEffect(() => {
+    if (!audioAnalyser || !isPlaying) return;
+
+    const dataArray = new Uint8Array(audioAnalyser.frequencyBinCount);
+    const updateHeights = () => {
+      audioAnalyser.getByteFrequencyData(dataArray);
+      const newHeights = Array(38).fill(0).map((_, i) => {
+        const dataIndex = Math.floor((i / 38) * dataArray.length);
+        if (i < 8) {
+          return Math.max(4, Math.min(10, (dataArray[dataIndex] / 255) * 20));
+        }
+        // Last 8 bars - smaller height changes
+        else if (i >= 30) {
+          return Math.max(4, Math.min(10, (dataArray[dataIndex] / 255) * 20));
+        }
+        // Middle section - larger height changes
+        else {
+          return Math.max(4, (dataArray[dataIndex] / 255) * 38);
+        }
+      });
+      setBarHeights(newHeights);
+
+      if (isPlaying) {
+        requestAnimationFrame(updateHeights);
+      }
+    };
+
+    updateHeights();
+
+    return () => {
+      if (!isPlaying) {
+        setBarHeights(new Array(38).fill(4));
+      }
+    };
+  }, [audioAnalyser, isPlaying]);
+
+  // To start the yellow glowing effect behid the microphone icon based on the intexity of the voulume
+  
   useEffect(() => {
     if (!mediaRecorder || !isRecording) return;
 

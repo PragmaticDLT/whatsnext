@@ -412,6 +412,7 @@ export default function MessagesBody({
 
   return (
     <div className="flex h-full grow flex-col transition-transform duration-300 ease-in-out md:translate-x-0 w-full">
+      <button onClick={() => handleGenerateAudio("Testing on safri browser")}>Test Safari</button>
       <MessageBody
         messages={messages}
         messagesEndRef={messagesEndRef}
