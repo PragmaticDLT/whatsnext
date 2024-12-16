@@ -52,11 +52,34 @@ export const MessageInput = ({
     }
   };
 
+  // Helper function to get supported MIME type
+  const getSupportedMimeType = () => {
+    const types = [
+      'audio/webm',
+      'audio/mp4',
+      'audio/mpeg',
+      'audio/ogg;codecs=opus'
+    ];
+
+    for (const type of types) {
+      if (MediaRecorder.isTypeSupported(type)) {
+        return type;
+      }
+    }
+
+    throw new Error('No supported MIME types found');
+  };
 
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
+      if (!window.MediaRecorder) {
+        throw new Error('MediaRecorder is not supported in this browser');
+      }
+      const mimeType = getSupportedMimeType();
+      const recorder = new MediaRecorder(stream, {
+        mimeType: mimeType
+      });
       setMediaRecorder(recorder);
       setIsRecording(true);
 
@@ -68,7 +91,7 @@ export const MessageInput = ({
       };
 
       recorder.onstop = async () => {
-        const audioBlob = new Blob(chunks, { type: 'audio/webm' });
+        const audioBlob = new Blob(chunks, { type: mimeType });
         await handleAudioSubmission(audioBlob);
         setAudioChunks([]);
       };
@@ -76,6 +99,7 @@ export const MessageInput = ({
       recorder.start(1000); // Collect data in 1-second chunks
     } catch (err) {
       console.error("Error accessing microphone:", err);
+      alert('Unable to access microphone. Please make sure you have granted permission and are using a supported browser.');
     }
   };
 
@@ -90,7 +114,9 @@ export const MessageInput = ({
   const handleAudioSubmission = async (audioBlob: Blob) => {
     try {
       const formData = new FormData();
-      formData.append("file", audioBlob, "audio.webm");
+      const fileName = `audio.${audioBlob.type.split('/')[1]}`;
+
+      formData.append("file", audioBlob, fileName);
       formData.append("model", "whisper-1");
 
       const response = await fetch("/api/upload-audio", {
@@ -109,6 +135,7 @@ export const MessageInput = ({
       }
     } catch (error) {
       console.error("Error transcribing audio:", error);
+      alert('Failed to process audio. Please try again.');
     }
   };
 
