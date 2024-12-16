@@ -268,7 +268,7 @@ export const MessageInput = ({
 
   return (
     <div className="sticky bottom-0 w-full ">
-      <div className="flex justify-center items-center gap-2 bg-[#c0c0c0] m-auto md:w-[30%] w-[90%] p-2 rounded-[3px] mb-2">
+      <div className="flex justify-center items-center gap-2 bg-[#c0c0c0] m-auto md:w-[40%] lg:w-[30%] w-[90%] p-2 rounded-[3px] mb-2">
         {/* Speaker icon */}
         <button className={`btn ${isPlaying ? 'bg-black' : 'bg-[#a0a0a0]'}  hover:bg-gray-600 text-white rounded-full w-10 h-10 flex items-center justify-center mr-2`}>
           <object data="/svg/speaker.svg" width='20px' height='20px'></object>

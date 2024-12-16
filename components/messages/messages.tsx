@@ -276,6 +276,13 @@ export default function MessagesBody({
     );
   };
 
+  const [hasUserInteracted, setHasUserInteracted] = useState(() => {
+    // Check if user has previously interacted
+    return localStorage.getItem('audioPermissionGranted') === 'true'
+  });
+  const [showAudioPrompt, setShowAudioPrompt] = useState(false);
+  const [startMessage, setStartMessage] = useState("");
+
   const handleMessageCompleted = async (event) => {
     setInputDisabled(false);
     const messageText = event.data.content[0].text.value;
@@ -284,7 +291,19 @@ export default function MessagesBody({
       || messageText?.includes("Congrats, you’ve completed the What's Next Next Life Coaching part of this Course!")
       || messageText?.includes("That's all the questions! Great job!")
       || messageText?.startsWith("That's a tough challenge!"))) {
-      handleGenerateAudio(event.data.content[0].text.value)
+      const userAgent = typeof window !== 'undefined' ? navigator.userAgent : '';
+      if (/safari/i.test(userAgent) && !/chrome|chromium|crios/i.test(userAgent)) {
+        if (hasUserInteracted) {
+          // If user has already granted permission, play audio
+          handleGenerateAudio(messageText);
+        } else {
+          // Show prompt for first-time users
+          setStartMessage(messageText);
+          setShowAudioPrompt(true);
+        }
+      } else {
+        handleGenerateAudio(event.data.content[0].text.value)
+      }
     }
     currentQuestionNumber < 14
       ? checkForLastQuestionNumber(messageText)
@@ -412,7 +431,41 @@ export default function MessagesBody({
 
   return (
     <div className="flex h-full grow flex-col transition-transform duration-300 ease-in-out md:translate-x-0 w-full">
-      <button onClick={() => handleGenerateAudio("Testing on safri browser")}>Test Safari</button>
+      {showAudioPrompt && (
+        <div className="fixed bottom-4 right-4 p-4 bg-white shadow-lg rounded-lg z-50">
+          <p>Would you like to enable audio responses?</p>
+          <div className="flex gap-2 mt-2">
+            <button
+              className="btn bg-indigo-500 hover:bg-indigo-600 text-white"
+              onClick={() => {
+                // Play a silent audio first to get permission
+                const audio = new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA");
+                audio.play().then(() => {
+                  setHasUserInteracted(true);
+                  localStorage.setItem('audioPermissionGranted', 'true');
+                  setShowAudioPrompt(false);
+                  // Play the actual message audio
+                  handleGenerateAudio(startMessage);
+                }).catch(error => {
+                  console.error('Failed to enable audio:', error);
+                  setShowAudioPrompt(false);
+                });
+              }}
+            >
+              Enable Audio
+            </button>
+            <button
+              className="btn bg-gray-500 hover:bg-gray-600 text-white"
+              onClick={() => {
+                setShowAudioPrompt(false);
+                localStorage.setItem('audioPermissionGranted', 'false');
+              }}
+            >
+              No Thanks
+            </button>
+          </div>
+        </div>
+      )}
       <MessageBody
         messages={messages}
         messagesEndRef={messagesEndRef}
