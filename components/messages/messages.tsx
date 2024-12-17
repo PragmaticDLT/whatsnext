@@ -105,9 +105,11 @@ export default function MessagesBody({
     console.log(response);
   };
 
-  const handleGenerateAudio = async (message: string) => {
+  const handleGenerateAudio = async (message: string, userInteraction: boolean) => {
     setIsPlaying(false);
-
+    if(userInteraction){
+      appendToLastMessage(message)
+    }
     try {
       // Start preloading audio while the API call is in progress
       const audioElement = audioRef.current as HTMLAudioElement | null;
@@ -349,7 +351,7 @@ export default function MessagesBody({
       if (/safari/i.test(userAgent) && !/chrome|chromium|crios/i.test(userAgent)) {
         if (hasUserInteracted) {
           // If user has already granted permission, play audio
-          await handleGenerateAudio(messageText);
+          await handleGenerateAudio(messageText, false);
           tempAppendMessage?.map((text) => {
             appendToLastMessage(text);
           })
@@ -359,7 +361,7 @@ export default function MessagesBody({
           setShowAudioPrompt(true);
         }
       } else {
-        await handleGenerateAudio(event.data.content[0].text.value)
+        await handleGenerateAudio(event.data.content[0].text.value, false)
         tempAppendMessage?.map((text) => {
           appendToLastMessage(text);
         })
@@ -506,7 +508,7 @@ export default function MessagesBody({
               className="btn bg-indigo-500 hover:bg-indigo-600 text-white"
               onClick={() => {
                 // Direct attempt to play the message audio on iOS
-                handleGenerateAudio(startMessage)
+                handleGenerateAudio(startMessage, true)
                   .then(() => {
                     setHasUserInteracted(true);
                     localStorage.setItem('audioPermissionGranted', 'true');
