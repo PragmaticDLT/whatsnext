@@ -121,7 +121,9 @@ export const MessageInput = ({
 
       const response = await fetch("/api/upload-audio", {
         method: "POST",
-
+        headers: {
+          'Priority': 'high',
+        },
         body: formData,
       });
 
@@ -163,22 +165,22 @@ export const MessageInput = ({
       }
     };
 
-    const handleStop = () => {
-      if (audioContext) {
-        //  audioContext.close();
-        setIsPlaying(false);
-      }
-    };
+    // const handleStop = () => {
+    //   if (audioContext) {
+    //     //  audioContext.close();
+    //     setIsPlaying(false);
+    //   }
+    // };
 
     audioRef.current.addEventListener('play', handlePlay);
-    audioRef.current.addEventListener('pause', handleStop);
-    audioRef.current.addEventListener('ended', handleStop);
+    // audioRef.current.addEventListener('pause', handleStop);
+    // audioRef.current.addEventListener('ended', handleStop);
 
     return () => {
       if (audioRef.current) {
         audioRef.current.removeEventListener('play', handlePlay);
-        audioRef.current.removeEventListener('pause', handleStop);
-        audioRef.current.removeEventListener('ended', handleStop);
+        // audioRef.current.removeEventListener('pause', handleStop);
+        // audioRef.current.removeEventListener('ended', handleStop);
       }
     };
   }, [audioRef, audioContext]);
@@ -221,7 +223,7 @@ export const MessageInput = ({
   }, [audioAnalyser, isPlaying]);
 
   // To start the yellow glowing effect behid the microphone icon based on the intexity of the voulume
-  
+
   useEffect(() => {
     if (!mediaRecorder || !isRecording) return;
 
@@ -270,7 +272,7 @@ export const MessageInput = ({
     <div className="sticky bottom-0 w-full ">
       <div className="flex justify-center items-center gap-2 bg-[#c0c0c0] m-auto md:w-[40%] lg:w-[30%] w-[90%] p-2 rounded-[3px] mb-2">
         {/* Speaker icon */}
-        <button className={`btn ${isPlaying ? 'bg-black' : 'bg-[#a0a0a0]'}  hover:bg-gray-600 text-white rounded-full w-10 h-10 flex items-center justify-center mr-2`}>
+        <button className={`btn ${isPlaying ? 'bg-black' : 'bg-[#a0a0a0]'} text-white rounded-full w-10 h-10 flex items-center justify-center mr-2`}>
           <object data="/svg/speaker.svg" width='20px' height='20px'></object>
         </button>
         <audio ref={audioRef} controls style={{ marginTop: "10px", display: "none" }}>
@@ -308,7 +310,6 @@ export const MessageInput = ({
             </svg>) : (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
             </svg>)}
-
           </button>
         </div>
 

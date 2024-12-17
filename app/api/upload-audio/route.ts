@@ -23,8 +23,9 @@ export async function POST(req: Request) {
     const response = await openai.audio.transcriptions.create({
       file: new File([audioBuffer], `audio.${file.type.split('/')[1]}`, { type: file.type }),
       model: 'whisper-1',
+      response_format: 'text'
     });
-    return NextResponse.json({ text: response.text });
+    return NextResponse.json({ text: response });
 
   } catch (error) {
     console.error('Error processing audio:', error);
