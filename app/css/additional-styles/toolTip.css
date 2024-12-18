@@ -1,0 +1,33 @@
+.buttonContainer {
+    position: relative;
+    display: flex;
+    justify-content: end;
+    padding-right: 2px;
+}
+
+.tooltip {
+    visibility: hidden;
+    width: 130%;
+    border-radius: 5px;
+    padding: 5px;
+    position: absolute;
+    z-index: 1;
+    bottom: 120%;
+    left: 140%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+
+.buttonContainer:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+}
+
+@media (max-width: 1024px) {
+    .tooltip {
+        left: 50%;
+        width: 100%;
+    }
+}

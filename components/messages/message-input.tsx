@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { buttonOptions } from "../../constants/buttonOptions";
 import { useChatsContext } from "../../contexts/chats-context";
+import "../../app/css/additional-styles/toolTip.css"
 
 export const MessageInput = ({
   messageInput,
@@ -30,7 +31,6 @@ export const MessageInput = ({
   const { activeButtons } = useChatsContext();
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
-  const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
   const [barHeights, setBarHeights] = useState(new Array(38).fill(4));
   const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
   const [audioAnalyser, setAudioAnalyser] = useState<AnalyserNode | null>(null);
@@ -93,7 +93,6 @@ export const MessageInput = ({
       recorder.onstop = async () => {
         const audioBlob = new Blob(chunks, { type: mimeType });
         await handleAudioSubmission(audioBlob);
-        setAudioChunks([]);
       };
 
       recorder.start(1000); // Collect data in 1-second chunks
@@ -165,22 +164,11 @@ export const MessageInput = ({
       }
     };
 
-    // const handleStop = () => {
-    //   if (audioContext) {
-    //     //  audioContext.close();
-    //     setIsPlaying(false);
-    //   }
-    // };
-
     audioRef.current.addEventListener('play', handlePlay);
-    // audioRef.current.addEventListener('pause', handleStop);
-    // audioRef.current.addEventListener('ended', handleStop);
 
     return () => {
       if (audioRef.current) {
         audioRef.current.removeEventListener('play', handlePlay);
-        // audioRef.current.removeEventListener('pause', handleStop);
-        // audioRef.current.removeEventListener('ended', handleStop);
       }
     };
   }, [audioRef, audioContext]);
@@ -223,7 +211,6 @@ export const MessageInput = ({
   }, [audioAnalyser, isPlaying]);
 
   // To start the yellow glowing effect behid the microphone icon based on the intexity of the voulume
-
   useEffect(() => {
     if (!mediaRecorder || !isRecording) return;
 
@@ -240,7 +227,6 @@ export const MessageInput = ({
       analyser.getByteFrequencyData(dataArray);
       // Calculate average volume level from frequency data
       const averageVolume = dataArray.reduce((acc, val) => acc + val, 0) / dataArray.length;
-      // Convert to percentage (0-100) for brightness
       const brightness = Math.min(100, (averageVolume / 255) * 100);
       // Set background glow intensity based on volume
       const glowIntensity = Math.max(20, brightness);
@@ -268,51 +254,75 @@ export const MessageInput = ({
     };
   }, [isRecording, mediaRecorder]);
 
+
   return (
     <div className="sticky bottom-0 w-full ">
-      <div className="flex justify-center items-center gap-2 bg-[#c0c0c0] m-auto md:w-[40%] lg:w-[30%] w-[90%] p-2 rounded-[3px] mb-2">
-        {/* Speaker icon */}
-        <button className={`btn ${isPlaying ? 'bg-black' : 'bg-[#a0a0a0]'} text-white rounded-full w-10 h-10 flex items-center justify-center mr-2`}>
-          <object data="/svg/speaker.svg" width='20px' height='20px'></object>
-        </button>
-        <audio ref={audioRef} controls style={{ marginTop: "10px", display: "none" }}>
-          Your browser does not support the audio element.
-        </audio>
-
-        {/* Sound wave animation */}
-        <div className="flex items-center gap-1 w-48 h-8">
-          {isPlaying && (
-            <>
-              {barHeights.map((height, i) => {
-                return (
-                  <div
-                    key={i}
-                    className=" bg-black w-[1px]"
-                    style={{
-                      height: `${height}px`,
-                      transition: 'height 100ms ease'
-                    }}
-                  />
-                );
-              })}
-            </>
-          )}
+      <div className=" bg-[#c0c0c0] m-auto sm:w-[60%] lg:w-[30%] w-[90%] pt-1 pb-2 rounded-[3px] mb-2 ">
+        <div className="buttonContainer">
+          <object data="/svg/info.svg" width='22px' height='22px'></object>
+          <div className="tooltip dark:text-indigo-200 bg-indigo-200">
+            <small className="text-[#ffa500] flex justify-center">How the Audio Feature and Microphone Input Work</small>
+            <ul style={{ margin: 0, paddingLeft: "15px", fontSize: '11.5px', listStyleType: 'lower-alpha' }}>
+              <li>
+                To input your response, click on the microphone icon. When you are done speaking,
+                unclick the microphone icon and your response will be displayed in the input box.
+                <ul>
+                  <li>Note: You can check to make sure the microphone is working by checking to see if the background of the
+                    microphone icon turns to black and a yellow glow behid the icon will be shown when you start recording.
+                  </li>
+                </ul>
+              </li>
+              <li>You can make a change to what you said, or change some or all of what you said,
+                by clicking on the input box and typing in your change.
+              </li>
+              <li>When you are ok with your response, you can hit the Send button.</li>
+              <li>If you are using on a safari ios devices, give the system an access to hear the AI response.</li>
+            </ul>
+          </div>
         </div>
-        <div style={style} className="p-2 rounded-full">
-          {/* Microphone button */}
-          <button
-            className={`btn ${isRecording ? 'bg-black' : 'bg-[#a0a0a0] hover:bg-black'} text-white rounded-full w-10 h-10 flex items-center justify-center`}
-            onClick={isRecording ? stopRecording : startRecording}
-            disabled={inputDisabled}
-          >
-            {isRecording ? (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="#ffa500">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-            </svg>) : (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-            </svg>)}
+        <div className="flex justify-center items-center gap-2">
+          {/* Speaker icon */}
+          <button className={`btn ${isPlaying ? 'bg-black' : 'bg-[#a0a0a0]'} text-white rounded-full w-10 h-10 flex items-center justify-center mr-2`}>
+            <object data="/svg/speaker.svg" width='20px' height='20px'></object>
           </button>
-        </div>
+          <audio ref={audioRef} controls style={{ display: "none" }}>
+            Your browser does not support the audio element.
+          </audio>
 
+          {/* Sound wave animation */}
+          <div className="flex items-center gap-1 w-48 h-8">
+            {isPlaying && (
+              <>
+                {barHeights.map((height, i) => {
+                  return (
+                    <div
+                      key={i}
+                      className=" bg-black w-[1px]"
+                      style={{
+                        height: `${height}px`,
+                        transition: 'height 100ms ease'
+                      }}
+                    />
+                  );
+                })}
+              </>
+            )}
+          </div>
+          <div style={style} className=" rounded-full">
+            {/* Microphone button */}
+            <button
+              className={`btn ${isRecording ? 'bg-black' : 'bg-[#a0a0a0] hover:bg-black'} text-white rounded-full w-10 h-10 flex items-center justify-center`}
+              onClick={isRecording ? stopRecording : startRecording}
+              disabled={inputDisabled}
+            >
+              {isRecording ? (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="#ffa500">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+              </svg>) : (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+              </svg>)}
+            </button>
+          </div>
+        </div>
       </div>
       {messages.length > 2 && (
         <div className="flex flex-wrap gap-2 py-2 px-4 bg-transparent">
