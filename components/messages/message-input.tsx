@@ -311,7 +311,7 @@ export const MessageInput = ({
           <div style={style} className=" rounded-full">
             {/* Microphone button */}
             <button
-              className={`btn ${isRecording ? 'bg-black' : 'bg-[#a0a0a0] hover:bg-black'} text-white rounded-full w-10 h-10 flex items-center justify-center`}
+              className={`btn ${isRecording ? 'bg-black' : 'bg-[#a0a0a0] hover:bg-[#808080]'} text-white rounded-full w-10 h-10 flex items-center justify-center`}
               onClick={isRecording ? stopRecording : startRecording}
               disabled={inputDisabled}
             >

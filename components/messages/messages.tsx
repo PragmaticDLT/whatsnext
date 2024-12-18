@@ -473,8 +473,7 @@ export default function MessagesBody({
 
   return (
     <div className="flex h-full grow flex-col transition-transform duration-300 ease-in-out md:translate-x-0 w-full">
-     <button onClick={()=> handleGenerateAudio("Hello this is whats next coach how are you", false)}>Test</button>
-      {!showAudioPrompt && (
+      {showAudioPrompt && (
         <div className="fixed bottom-16 right-4 p-4 bg-white shadow-lg rounded-lg z-50">
           <p>Would you like to enable audio responses?</p>
           <div className="flex gap-2 mt-2">
