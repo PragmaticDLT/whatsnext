@@ -14,12 +14,26 @@ async function createPDF(json: any) {
     const pdfDoc = await PDFDocument.create();
     pdfDoc.registerFontkit(fontkit);
 
-    // Cargar la fuente Monorama
+    // Cargar la fuente Monorama | Lato | Oswald
     const fontResponse = await fetch("/Monorama-Regular.ttf");
-    if (!fontResponse.ok) {
+    const headerFontResponse = await fetch("/Oswald-Bold.ttf");
+    const paragraphFontResponse = await fetch("/Lato-Regular.ttf");
+
+    if (!fontResponse.ok || !headerFontResponse.ok || !paragraphFontResponse.ok) {
       throw new Error(`HTTP error! status: ${fontResponse.status}`);
     }
+    if (!headerFontResponse.ok) {
+      throw new Error(`HTTP error! status: ${headerFontResponse.status}`);
+    }
+    if (!paragraphFontResponse.ok) {
+      throw new Error(`HTTP error! status: ${paragraphFontResponse.status}`);
+    }
     const fontBytes = await fontResponse.arrayBuffer();
+    const headerFontBytes = await headerFontResponse.arrayBuffer();
+    const paragraphFontBytes = await paragraphFontResponse.arrayBuffer();
+
+    const oswaldFont = await pdfDoc.embedFont(headerFontBytes);
+    const latoFont = await pdfDoc.embedFont(paragraphFontBytes);
     const monoramaFont = await pdfDoc.embedFont(fontBytes);
 
     // Cargar la imagen del logo
@@ -50,7 +64,7 @@ async function createPDF(json: any) {
       let currentLine = words[0];
 
       for (let i = 1; i < words.length; i++) {
-        const width = monoramaFont.widthOfTextAtSize(
+        const width = latoFont.widthOfTextAtSize(
           currentLine + " " + words[i],
           fontSize
         );
@@ -91,7 +105,7 @@ async function createPDF(json: any) {
       x: 50,
       y: height - 70 - logoHeight,
       size: 18,
-      font: monoramaFont,
+      font: oswaldFont,
     });
 
     const intentionLines = splitTextIntoLines(intention, maxWidth, 12);
@@ -101,7 +115,7 @@ async function createPDF(json: any) {
         x: 50,
         y: yPosition,
         size: 12,
-        font: monoramaFont,
+        font: latoFont,
       });
       yPosition -= 20;
     });
@@ -132,7 +146,7 @@ async function createPDF(json: any) {
         x: 50,
         y: yPosition,
         size: 18,
-        font: monoramaFont,
+        font: oswaldFont,
       });
       yPosition -= 30;
 
@@ -147,7 +161,7 @@ async function createPDF(json: any) {
             x: 50,
             y: yPosition,
             size: 12,
-            font: monoramaFont,
+            font: latoFont,
           });
           yPosition -= 20;
         });
@@ -162,7 +176,7 @@ async function createPDF(json: any) {
             x: 50,
             y: yPosition,
             size: 12,
-            font: monoramaFont,
+            font: latoFont,
           });
           yPosition -= 20;
         });
@@ -177,7 +191,7 @@ async function createPDF(json: any) {
             x: 50,
             y: yPosition,
             size: 12,
-            font: monoramaFont,
+            font: latoFont,
           });
           yPosition -= 20;
         });
@@ -191,7 +205,7 @@ async function createPDF(json: any) {
         x: 50,
         y: yPosition,
         size: 18,
-        font: monoramaFont,
+        font: oswaldFont,
       });
       yPosition -= 30;
 
@@ -206,7 +220,7 @@ async function createPDF(json: any) {
             x: 50,
             y: yPosition,
             size: 12,
-            font: monoramaFont,
+            font: latoFont,
           });
           yPosition -= 20;
         });
@@ -221,7 +235,7 @@ async function createPDF(json: any) {
             x: 50,
             y: yPosition,
             size: 12,
-            font: monoramaFont,
+            font: latoFont,
           });
           yPosition -= 20;
         });
@@ -255,7 +269,7 @@ async function createPDF(json: any) {
         x: 50,
         y: yPosition,
         size: 18,
-        font: monoramaFont,
+        font: oswaldFont,
       });
       yPosition -= 30;
 
@@ -270,7 +284,7 @@ async function createPDF(json: any) {
             x: 50,
             y: yPosition,
             size: 12,
-            font: monoramaFont,
+            font: latoFont,
           });
           yPosition -= 20;
         });

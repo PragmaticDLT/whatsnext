@@ -107,7 +107,7 @@ export default function MessagesBody({
 
   const handleGenerateAudio = async (message: string, userInteraction: boolean) => {
     setIsPlaying(false);
-    if(userInteraction){
+    if (userInteraction) {
       appendToLastMessage(message)
     }
     try {
@@ -347,7 +347,8 @@ export default function MessagesBody({
       || messageText?.startsWith("We recommend taking a 15 to 20 minute break")
       || messageText?.includes("Congrats, you’ve completed the What's Next Next Life Coaching part of this Course!")
       || messageText?.includes("That's all the questions! Great job!")
-      || messageText?.startsWith("That's a tough challenge!"))) {
+      || messageText?.startsWith("That's a tough challenge!")
+      || messageText.startsWith("```json"))) {
       if (/safari/i.test(userAgent) && !/chrome|chromium|crios/i.test(userAgent)) {
         if (hasUserInteracted) {
           // If user has already granted permission, play audio
