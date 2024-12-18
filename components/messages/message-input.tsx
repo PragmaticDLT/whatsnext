@@ -14,7 +14,6 @@ export const MessageInput = ({
   currentQuestionNumber,
   audioRef,
   isPlaying,
-  setIsPlaying
 }: {
   messageInput: string;
   setMessageInput: (messageInput: string) => void;
@@ -26,7 +25,6 @@ export const MessageInput = ({
   currentQuestionNumber: number;
   audioRef: any,
   isPlaying: boolean,
-  setIsPlaying: (isPlaying: boolean) => void
 }) => {
   const { activeButtons } = useChatsContext();
   const [isRecording, setIsRecording] = useState<boolean>(false);
@@ -157,7 +155,7 @@ export const MessageInput = ({
 
         source.connect(newAnalyser);
         newAnalyser.connect(newAudioContext.destination);
-        newAnalyser.fftSize = 64;
+        newAnalyser.fftSize = 32;
 
         setAudioContext(newAudioContext);
         setAudioAnalyser(newAnalyser);
@@ -181,7 +179,7 @@ export const MessageInput = ({
     const updateHeights = () => {
       audioAnalyser.getByteFrequencyData(dataArray);
       const newHeights = Array(38).fill(0).map((_, i) => {
-        const dataIndex = Math.floor((i / 38) * dataArray.length);
+        const dataIndex = Math.floor((i / 38) * (dataArray.length - 8));
         if (i < 8) {
           return Math.max(4, Math.min(10, (dataArray[dataIndex] / 255) * 20));
         }
@@ -259,25 +257,27 @@ export const MessageInput = ({
     <div className="sticky bottom-0 w-full ">
       <div className=" bg-[#c0c0c0] m-auto sm:w-[60%] lg:w-[30%] w-[90%] pt-1 pb-2 rounded-[3px] mb-2 ">
         <div className="buttonContainer">
-          <object data="/svg/info.svg" width='22px' height='22px'></object>
-          <div className="tooltip dark:text-indigo-200 bg-indigo-200">
-            <small className="text-[#ffa500] flex justify-center">How the Audio Feature and Microphone Input Work</small>
-            <ul style={{ margin: 0, paddingLeft: "15px", fontSize: '11.5px', listStyleType: 'lower-alpha' }}>
-              <li>
-                To input your response, click on the microphone icon. When you are done speaking,
-                unclick the microphone icon and your response will be displayed in the input box.
-                <ul>
-                  <li>Note: You can check to make sure the microphone is working by checking to see if the background of the
-                    microphone icon turns to black and a yellow glow behid the icon will be shown when you start recording.
-                  </li>
-                </ul>
-              </li>
-              <li>You can make a change to what you said, or change some or all of what you said,
-                by clicking on the input box and typing in your change.
-              </li>
-              <li>When you are ok with your response, you can hit the Send button.</li>
-              <li>If you are using on a safari ios devices, give the system an access to hear the AI response.</li>
-            </ul>
+          <div className="button">
+            <object data="/svg/info.svg" width='22px' height='22px'></object>
+            <div className="tooltip dark:text-indigo-200 bg-indigo-200">
+              <small className="text-[#ffa500] flex justify-center">How the Audio Feature and Microphone Input Work</small>
+              <ul style={{ margin: 0, paddingLeft: "15px", fontSize: '11.5px', listStyleType: 'lower-alpha' }}>
+                <li>
+                  To input your response, click on the microphone icon. When you are done speaking,
+                  unclick the microphone icon and your response will be displayed in the input box.
+                  <ul>
+                    <li>Note: You can check to make sure the microphone is working by checking to see if the background of the
+                      microphone icon turns to black and a yellow glow behid the icon will be shown when you start recording.
+                    </li>
+                  </ul>
+                </li>
+                <li>You can make a change to what you said, or change some or all of what you said,
+                  by clicking on the input box and typing in your change.
+                </li>
+                <li>When you are ok with your response, you can hit the Send button.</li>
+                <li>If you are using on a safari ios devices, give the system an access to hear the AI response.</li>
+              </ul>
+            </div>
           </div>
         </div>
         <div className="flex justify-center items-center gap-2">

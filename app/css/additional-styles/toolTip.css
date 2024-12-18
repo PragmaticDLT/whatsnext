@@ -19,8 +19,7 @@
     transition: opacity 0.2s;
 }
 
-
-.buttonContainer:hover .tooltip {
+.button:hover .tooltip {
     visibility: visible;
     opacity: 1;
 }

@@ -42,7 +42,7 @@ export default function MessagesBody({
   const audioRef = useRef(null);
 
   // For safari browser to give permission for playing the audio
-  const userAgent = typeof window !== 'undefined' ? navigator.userAgent : ''; // To identify if the browser is safari
+  const userAgent = typeof window !== 'undefined' ? navigator.userAgent : ''; // To identify users browser
   const [hasUserInteracted, setHasUserInteracted] = useState(() => {
     // Check if user has previously interacted
     return localStorage.getItem('audioPermissionGranted') === 'true'
@@ -107,6 +107,7 @@ export default function MessagesBody({
 
   const handleGenerateAudio = async (message: string, userInteraction: boolean) => {
     setIsPlaying(false);
+    // To append AI responde to the chat on safari browser when users give initial permission for the audio
     if (userInteraction) {
       appendToLastMessage(message)
     }
@@ -158,35 +159,6 @@ export default function MessagesBody({
       console.error("Error generating audio:", error);
     }
   };
-  // const handleGenerateAudio = async (message: string) => {
-  //   setIsPlaying(false);
-
-  //   try {
-  //     const res = await fetch("/api/read-audio", {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify({
-  //         response: message
-  //       })
-  //     });
-
-  //     if (!res.ok) {
-  //       throw new Error("Failed to fetch audio");
-  //     }
-
-  //     const audioBlob = await res.blob();
-  //     const audioUrl = URL.createObjectURL(audioBlob);
-  //     if (audioRef.current) {
-  //       (audioRef.current as HTMLAudioElement).src = audioUrl;
-  //       setIsPlaying(true);
-  //       (audioRef.current as HTMLAudioElement).play();
-  //     }
-  //   } catch (error) {
-  //     console.error("Error generating audio:", error);
-  //   }
-  // };
 
   const sendMessage = async (
     text: string,
@@ -501,8 +473,9 @@ export default function MessagesBody({
 
   return (
     <div className="flex h-full grow flex-col transition-transform duration-300 ease-in-out md:translate-x-0 w-full">
-      {showAudioPrompt && (
-        <div className="fixed bottom-4 right-4 p-4 bg-white shadow-lg rounded-lg z-50">
+     <button onClick={()=> handleGenerateAudio("Hello this is whats next coach how are you", false)}>Test</button>
+      {!showAudioPrompt && (
+        <div className="fixed bottom-16 right-4 p-4 bg-white shadow-lg rounded-lg z-50">
           <p>Would you like to enable audio responses?</p>
           <div className="flex gap-2 mt-2">
             <button
@@ -564,7 +537,6 @@ export default function MessagesBody({
         currentQuestionNumber={currentQuestionNumber}
         audioRef={audioRef}
         isPlaying={isPlaying}
-        setIsPlaying={setIsPlaying}
       />
     </div>
   );
