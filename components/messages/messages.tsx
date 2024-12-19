@@ -134,7 +134,21 @@ export default function MessagesBody({
         throw new Error("Failed to fetch audio");
       }
 
-      const audioBlob = await res.blob();
+      const reader = res.body?.getReader();
+      const audioChunks = [];
+
+      if (!reader) {
+        throw new Error("Unable to read audio stream");
+      }
+
+      // Read audio stream chunks
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        audioChunks.push(value);
+      }
+
+      const audioBlob = new Blob(audioChunks, { type: "audio/mpeg" });
       const audioUrl = URL.createObjectURL(audioBlob);
 
       if (audioElement) {
@@ -332,7 +346,7 @@ export default function MessagesBody({
           setShowAudioPrompt(true);
         }
       } else {
-         await handleGenerateAudio(event.data.content[0].text.value, false)
+        await handleGenerateAudio(event.data.content[0].text.value, false)
         tempAppendMessage?.map((text) => {
           appendToLastMessage(text);
         })
@@ -372,7 +386,7 @@ export default function MessagesBody({
   const handleTextDelta = (delta: any) => {
     // console.log("snapShot", snapshot)
     if (delta.value != null) {
-       tempAppendMessage.push(delta.value)
+      tempAppendMessage.push(delta.value)
       // appendToLastMessage(delta.value);
     }
     if (delta.annotations != null) {
