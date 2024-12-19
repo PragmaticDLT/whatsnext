@@ -278,8 +278,7 @@ export default function MessagesBody({
           setInputDisabled(false);
         }
       }
-      if (event.event === "thread.message.completed")
-        handleMessageCompleted(event);
+      if (event.event === "thread.message.completed") handleMessageCompleted(event);
       if (event.event === "thread.run.completed") handleRunCompleted(event);
     });
   };
@@ -313,7 +312,6 @@ export default function MessagesBody({
   };
 
   const handleMessageCompleted = async (event) => {
-    setInputDisabled(false);
     const messageText = event.data.content[0].text.value;
     if (!(messageText?.startsWith("Hey! Hello! Welcome")
       || messageText?.startsWith("We recommend taking a 15 to 20 minute break")
@@ -334,7 +332,7 @@ export default function MessagesBody({
           setShowAudioPrompt(true);
         }
       } else {
-        await handleGenerateAudio(event.data.content[0].text.value, false)
+         await handleGenerateAudio(event.data.content[0].text.value, false)
         tempAppendMessage?.map((text) => {
           appendToLastMessage(text);
         })
@@ -344,7 +342,7 @@ export default function MessagesBody({
         appendToLastMessage(text);
       })
     }
-
+    setInputDisabled(false);
     setTempAppendMessage([]); //Clear the temporary message holder array to hold the next AI response
     currentQuestionNumber < 14
       ? checkForLastQuestionNumber(messageText)
@@ -372,9 +370,10 @@ export default function MessagesBody({
 
   // textDelta - append text to last assistant message
   const handleTextDelta = (delta: any) => {
+    // console.log("snapShot", snapshot)
     if (delta.value != null) {
-      tempAppendMessage.push(delta.value)
-      //appendToLastMessage(delta.value);
+       tempAppendMessage.push(delta.value)
+      // appendToLastMessage(delta.value);
     }
     if (delta.annotations != null) {
       annotateLastMessage(delta.annotations);

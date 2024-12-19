@@ -308,7 +308,7 @@ export const MessageInput = ({
               </>
             )}
           </div>
-          <div style={style} className=" rounded-full">
+          <div style={style} className="p-2 rounded-full">
             {/* Microphone button */}
             <button
               className={`btn ${isRecording ? 'bg-black' : 'bg-[#a0a0a0] hover:bg-[#808080]'} text-white rounded-full w-10 h-10 flex items-center justify-center`}
