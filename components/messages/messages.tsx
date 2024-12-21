@@ -52,6 +52,11 @@ export default function MessagesBody({
 
   // const [tempAppendMessage, setTempAppendMessage] = useState<any>([]);
 
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const oscillatorRef = useRef<OscillatorNode[] | null>(null);
+  const gainNodeRef = useRef<GainNode | null>(null);
+
   useEffect(() => {
     if (messages.length > 1) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -175,10 +180,7 @@ export default function MessagesBody({
   //   }
   // };
 
-  const analyserRef = useRef<AnalyserNode | null>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const oscillatorRef = useRef<OscillatorNode | null>(null);
-  const gainNodeRef = useRef<GainNode | null>(null);
+
 
   // const [desiredVoice, setDesiredVoice] = useState<SpeechSynthesisVoice | null>(null);
 
@@ -237,34 +239,54 @@ export default function MessagesBody({
 
       if (!analyserRef.current) {
         analyserRef.current = audioContext.createAnalyser();
-        analyserRef.current.fftSize = 32; // Adjust for desired resolution
+        analyserRef.current.fftSize = 32;
       }
 
-      // Create a simple oscillator to simulate audio input
-      oscillatorRef.current = audioContext.createOscillator();
       if (!gainNodeRef.current) {
         gainNodeRef.current = audioContext.createGain();
-      }
-      if (!oscillatorRef.current) {
-        oscillatorRef.current = audioContext.createOscillator();
-        oscillatorRef.current.type = 'sine'; // Type of waveform
-        oscillatorRef.current.frequency.setValueAtTime(40, audioContext.currentTime); // Frequency in Hz
+        // Set a lower gain value to prevent loud audio
+        gainNodeRef.current.gain.value = 0.1;
       }
 
-      oscillatorRef.current.connect(gainNodeRef.current);
+      // Create multiple oscillators for a richer wave effect
+      const frequencies = [40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140];
+      oscillatorRef.current = frequencies.map(freq => {
+        const osc = audioContext.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, audioContext.currentTime);
+
+        // Add frequency modulation for wave-like effect
+        const modFreq = audioContext.currentTime;
+        osc.frequency.setValueCurveAtTime(
+          [freq - 10, freq + 10, freq - 10, freq + 10, freq - 10, freq + 10, freq - 10, freq + 10, freq - 10, freq + 10, freq - 10],
+          modFreq,
+          1
+        );
+
+        osc.connect(gainNodeRef.current!);
+        osc.start();
+        return osc;
+      });
+
       gainNodeRef.current.connect(analyserRef.current);
       analyserRef.current.connect(audioContext.destination);
 
-      oscillatorRef.current.type = 'sine'; // Type of waveform
-      oscillatorRef.current.frequency.setValueAtTime(40, audioContext.currentTime); // Frequency in Hz
-      oscillatorRef.current.start();
+      // Animate the gain for wave effect
+      const now = audioContext.currentTime;
+      gainNodeRef.current.gain.setValueCurveAtTime(
+        [0.1, 0.2, 0.1, 0.15, 0.1],
+        now,
+        1
+      );
     }
   };
 
   const stopAudioVisualization = () => {
     if (oscillatorRef.current) {
-      oscillatorRef.current.stop();
-      oscillatorRef.current.disconnect();
+      oscillatorRef.current.forEach(osc => {
+        osc.stop();
+        osc.disconnect();
+      });
       oscillatorRef.current = null;
     }
 

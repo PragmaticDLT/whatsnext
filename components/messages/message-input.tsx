@@ -218,7 +218,6 @@ export const MessageInput = ({
 
       const updateHeights = () => {
         analyserRef.current?.getByteFrequencyData(dataArray);
-        console.log("audioRef.current", analyserRef.current?.getByteFrequencyData(dataArray))
 
         const newHeights = Array(38).fill(0).map((_, i) => {
           const dataIndex = Math.floor((i / 38) * (dataArray.length - 8));
