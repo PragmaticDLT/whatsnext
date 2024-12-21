@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { MutableRefObject, useEffect, useState } from "react";
 import { buttonOptions } from "../../constants/buttonOptions";
 import { useChatsContext } from "../../contexts/chats-context";
 import "../../app/css/additional-styles/toolTip.css"
@@ -12,8 +12,9 @@ export const MessageInput = ({
   messages,
   quotedTexts,
   currentQuestionNumber,
-  audioRef,
+  // audioRef,
   isPlaying,
+  analyserRef
 }: {
   messageInput: string;
   setMessageInput: (messageInput: string) => void;
@@ -23,15 +24,16 @@ export const MessageInput = ({
   messages: any[];
   quotedTexts: any[];
   currentQuestionNumber: number;
-  audioRef: any,
+  // audioRef: any,
   isPlaying: boolean,
+  analyserRef: MutableRefObject<AnalyserNode | null>
 }) => {
   const { activeButtons } = useChatsContext();
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [barHeights, setBarHeights] = useState(new Array(38).fill(4));
-  const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
-  const [audioAnalyser, setAudioAnalyser] = useState<AnalyserNode | null>(null);
+  // const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
+  // const [audioAnalyser, setAudioAnalyser] = useState<AnalyserNode | null>(null);
   const [style, setStyles] = useState({})
 
   const adjustTextareaHeight = () => {
@@ -144,69 +146,107 @@ export const MessageInput = ({
     }
   }, [messageInput]);
 
-  useEffect(() => {
-    if (!audioRef.current) return;
+  // useEffect(() => {
+  //   if (!audioRef.current) return;
 
-    const handlePlay = async () => {
-      if (!audioContext) {
-        const newAudioContext = new AudioContext();
-        const newAnalyser = newAudioContext.createAnalyser();
-        const source = newAudioContext.createMediaElementSource(audioRef.current!);
+  //   const handlePlay = async () => {
+  //     if (!audioContext) {
+  //       const newAudioContext = new AudioContext();
+  //       const newAnalyser = newAudioContext.createAnalyser();
+  //       const source = newAudioContext.createMediaElementSource(audioRef.current!);
 
-        source.connect(newAnalyser);
-        newAnalyser.connect(newAudioContext.destination);
-        newAnalyser.fftSize = 32;
+  //       source.connect(newAnalyser);
+  //       newAnalyser.connect(newAudioContext.destination);
+  //       newAnalyser.fftSize = 32;
 
-        setAudioContext(newAudioContext);
-        setAudioAnalyser(newAnalyser);
-      }
-    };
+  //       setAudioContext(newAudioContext);
+  //       setAudioAnalyser(newAnalyser);
+  //     }
+  //   };
 
-    audioRef.current.addEventListener('play', handlePlay);
+  //   audioRef.current.addEventListener('play', handlePlay);
 
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.removeEventListener('play', handlePlay);
-      }
-    };
-  }, [audioRef, audioContext]);
+  //   return () => {
+  //     if (audioRef.current) {
+  //       audioRef.current.removeEventListener('play', handlePlay);
+  //     }
+  //   };
+  // }, [audioRef, audioContext]);
 
   // To start the sound wave animation when the audio starts
+  // useEffect(() => {
+  //   if (!audioAnalyser || !isPlaying) return;
+
+  //   const dataArray = new Uint8Array(audioAnalyser.frequencyBinCount);
+  //   const updateHeights = () => {
+  //     audioAnalyser.getByteFrequencyData(dataArray);
+  //     const newHeights = Array(38).fill(0).map((_, i) => {
+  //       const dataIndex = Math.floor((i / 38) * (dataArray.length - 8));
+  //       if (i < 8) {
+  //         return Math.max(4, Math.min(10, (dataArray[dataIndex] / 255) * 20));
+  //       }
+  //       // Last 8 bars - smaller height changes
+  //       else if (i >= 30) {
+  //         return Math.max(4, Math.min(10, (dataArray[dataIndex] / 255) * 20));
+  //       }
+  //       // Middle section - larger height changes
+  //       else {
+  //         return Math.max(4, (dataArray[dataIndex] / 255) * 38);
+  //       }
+  //     });
+  //     setBarHeights(newHeights);
+
+  //     if (isPlaying) {
+  //       requestAnimationFrame(updateHeights);
+  //     }
+  //   };
+
+  //   updateHeights();
+
+  //   return () => {
+  //     if (!isPlaying) {
+  //       setBarHeights(new Array(38).fill(4));
+  //     }
+  //   };
+  // }, [audioAnalyser, isPlaying]);
+
   useEffect(() => {
-    if (!audioAnalyser || !isPlaying) return;
+    if (!analyserRef || !isPlaying) return;
 
-    const dataArray = new Uint8Array(audioAnalyser.frequencyBinCount);
-    const updateHeights = () => {
-      audioAnalyser.getByteFrequencyData(dataArray);
-      const newHeights = Array(38).fill(0).map((_, i) => {
-        const dataIndex = Math.floor((i / 38) * (dataArray.length - 8));
-        if (i < 8) {
-          return Math.max(4, Math.min(10, (dataArray[dataIndex] / 255) * 20));
+    if (analyserRef.current && isPlaying) {
+      const dataArray = new Uint8Array(analyserRef.current?.frequencyBinCount);
+
+      const updateHeights = () => {
+        analyserRef.current?.getByteFrequencyData(dataArray);
+        console.log("audioRef.current", analyserRef.current?.getByteFrequencyData(dataArray))
+
+        const newHeights = Array(38).fill(0).map((_, i) => {
+          const dataIndex = Math.floor((i / 38) * (dataArray.length - 8));
+          if (i < 8) {
+            return Math.max(4, Math.min(10, (dataArray[dataIndex] / 255) * 20));
+          }
+          // Last 8 bars - smaller height changes
+          else if (i >= 30) {
+            return Math.max(4, Math.min(10, (dataArray[dataIndex] / 255) * 20));
+          }
+          // Middle section - larger height changes
+          else {
+            return Math.max(4, (dataArray[dataIndex] / 255) * 38);
+          }
+        });
+        setBarHeights(newHeights);
+
+        if (isPlaying) {
+          requestAnimationFrame(updateHeights);
         }
-        // Last 8 bars - smaller height changes
-        else if (i >= 30) {
-          return Math.max(4, Math.min(10, (dataArray[dataIndex] / 255) * 20));
-        }
-        // Middle section - larger height changes
-        else {
-          return Math.max(4, (dataArray[dataIndex] / 255) * 38);
-        }
-      });
-      setBarHeights(newHeights);
+      };
 
-      if (isPlaying) {
-        requestAnimationFrame(updateHeights);
-      }
-    };
+      updateHeights();
+    } else {
+      setBarHeights(new Array(38).fill(4));
+    }
 
-    updateHeights();
-
-    return () => {
-      if (!isPlaying) {
-        setBarHeights(new Array(38).fill(4));
-      }
-    };
-  }, [audioAnalyser, isPlaying]);
+  }, [isPlaying]);
 
   // To start the yellow glowing effect behid the microphone icon based on the intexity of the voulume
   useEffect(() => {
@@ -252,7 +292,6 @@ export const MessageInput = ({
     };
   }, [isRecording, mediaRecorder]);
 
-
   return (
     <div className="sticky bottom-0 w-full ">
       <div className=" bg-[#c0c0c0] m-auto sm:w-[60%] lg:w-[30%] w-[90%] pt-1 pb-2 rounded-[3px] mb-2 ">
@@ -285,9 +324,9 @@ export const MessageInput = ({
           <button className={`btn ${isPlaying ? 'bg-black' : 'bg-[#a0a0a0]'} text-white rounded-full w-10 h-10 flex items-center justify-center mr-2`}>
             <object data="/svg/speaker.svg" width='20px' height='20px'></object>
           </button>
-          <audio ref={audioRef} controls style={{ display: "none" }}>
+          {/* <audio ref={audioRef} controls style={{ display: "none" }}>
             Your browser does not support the audio element.
-          </audio>
+          </audio> */}
 
           {/* Sound wave animation */}
           <div className="flex items-center gap-1 w-48 h-8">

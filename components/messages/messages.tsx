@@ -39,7 +39,7 @@ export default function MessagesBody({
   const InputRef = useRef<HTMLTextAreaElement>(null);
 
   const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef(null);
+  const audioRef = useRef<any>(null);
 
   // For safari browser to give permission for playing the audio
   const userAgent = typeof window !== 'undefined' ? navigator.userAgent : ''; // To identify users browser
@@ -50,7 +50,7 @@ export default function MessagesBody({
   const [showAudioPrompt, setShowAudioPrompt] = useState(false);
   const [startMessage, setStartMessage] = useState("");
 
-  const [tempAppendMessage, setTempAppendMessage] = useState<any>([]);
+  // const [tempAppendMessage, setTempAppendMessage] = useState<any>([]);
 
   useEffect(() => {
     if (messages.length > 1) {
@@ -105,74 +105,183 @@ export default function MessagesBody({
     console.log(response);
   };
 
-  const handleGenerateAudio = async (message: string, userInteraction: boolean) => {
-    setIsPlaying(false);
-    // To append AI responde to the chat on safari browser when users give initial permission for the audio
-    if (userInteraction) {
-      appendToLastMessage(message)
-    }
-    try {
-      // Start preloading audio while the API call is in progress
-      const audioElement = audioRef.current as HTMLAudioElement | null;
-      if (audioElement) {
-        audioElement.preload = "auto";
-        audioElement.pause();
-        audioElement.currentTime = 0;
+
+  // const handleGenerateAudio = async (message: string, userInteraction: boolean) => {
+  //   setIsPlaying(false);
+  //   // To append AI responde to the chat on safari browser when users give initial permission for the audio
+  //   if (userInteraction) {
+  //     appendToLastMessage(message)
+  //   }
+  //   try {
+  //     // Start preloading audio while the API call is in progress
+  //     const audioElement = audioRef.current as HTMLAudioElement | null;
+  //     if (audioElement) {
+  //       audioElement.preload = "auto";
+  //       audioElement.pause();
+  //       audioElement.currentTime = 0;
+  //     }
+
+  //     const res = await fetch("/api/read-audio", {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({
+  //         response: message
+  //       }),
+  //     });
+
+  //     if (!res.ok) {
+  //       throw new Error("Failed to fetch audio");
+  //     }
+
+  //     const reader = res.body?.getReader();
+  //     const audioChunks = [];
+
+  //     if (!reader) {
+  //       throw new Error("Unable to read audio stream");
+  //     }
+
+  //     // Read audio stream chunks
+  //     while (true) {
+  //       const { done, value } = await reader.read();
+  //       if (done) break;
+  //       audioChunks.push(value);
+  //     }
+
+  //     const audioBlob = new Blob(audioChunks, { type: "audio/mpeg" });
+  //     const audioUrl = URL.createObjectURL(audioBlob);
+
+  //     if (audioElement) {
+  //       audioElement.src = audioUrl;
+
+  //       // Add event listeners to handle playback state
+  //       audioElement.onplay = () => setIsPlaying(true);
+  //       audioElement.onpause = () => setIsPlaying(false);
+  //       audioElement.onended = () => setIsPlaying(false);
+
+  //       try {
+  //         await audioElement.play();
+  //       } catch (playError) {
+  //         console.error("Error playing audio:", playError);
+  //         // Handle autoplay restrictions
+  //         if (playError.name === 'NotAllowedError') {
+  //           console.log('Audio autoplay was prevented. User interaction required.');
+  //         }
+  //       }
+  //     }
+  //   } catch (error) {
+  //     console.error("Error generating audio:", error);
+  //   }
+  // };
+
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const oscillatorRef = useRef<OscillatorNode | null>(null);
+  const gainNodeRef = useRef<GainNode | null>(null);
+
+  // const [desiredVoice, setDesiredVoice] = useState<SpeechSynthesisVoice | null>(null);
+
+  // useEffect(() => {
+  //   const loadVoices = () => {
+  //     const availableVoices = window.speechSynthesis.getVoices();
+  //     // Set your desired voice by name or language
+  //     const voice = availableVoices.find((v) => v.name ===  'Google UK English Male' || v.lang === 'en-GB');
+  //     setDesiredVoice(voice || null);
+  //   };
+
+  //   if (window.speechSynthesis.onvoiceschanged !== undefined) {
+  //     window.speechSynthesis.onvoiceschanged = loadVoices;
+  //   } else {
+  //     loadVoices();
+  //   }
+  // }, []);
+
+  const handleSpeak = async (message: string) => {
+    if ('speechSynthesis' in window) {
+      if (isPlaying) {
+        window.speechSynthesis.cancel();
+        stopAudioVisualization();
+        setIsPlaying(false);
+        return;
       }
 
-      const res = await fetch("/api/read-audio", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          response: message
-        }),
-      });
+      const utterance = new SpeechSynthesisUtterance(message);
+      // if (desiredVoice) {
+      //   utterance.voice = desiredVoice;
+      // }
+      utterance.onstart = () => {
+        setIsPlaying(true);
+        startAudioVisualization();
+      };
 
-      if (!res.ok) {
-        throw new Error("Failed to fetch audio");
-      }
+      utterance.onend = () => {
+        setIsPlaying(false);
+        stopAudioVisualization();
+      };
 
-      const reader = res.body?.getReader();
-      const audioChunks = [];
-
-      if (!reader) {
-        throw new Error("Unable to read audio stream");
-      }
-
-      // Read audio stream chunks
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        audioChunks.push(value);
-      }
-
-      const audioBlob = new Blob(audioChunks, { type: "audio/mpeg" });
-      const audioUrl = URL.createObjectURL(audioBlob);
-
-      if (audioElement) {
-        audioElement.src = audioUrl;
-
-        // Add event listeners to handle playback state
-        audioElement.onplay = () => setIsPlaying(true);
-        audioElement.onpause = () => setIsPlaying(false);
-        audioElement.onended = () => setIsPlaying(false);
-
-        try {
-          await audioElement.play();
-        } catch (playError) {
-          console.error("Error playing audio:", playError);
-          // Handle autoplay restrictions
-          if (playError.name === 'NotAllowedError') {
-            console.log('Audio autoplay was prevented. User interaction required.');
-          }
-        }
-      }
-    } catch (error) {
-      console.error("Error generating audio:", error);
+      window.speechSynthesis.speak(utterance);
+    } else {
+      alert('Sorry, your browser does not support text-to-speech.');
     }
   };
+
+  const startAudioVisualization = () => {
+    if (!audioContextRef.current) {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      audioContextRef.current = new AudioContextClass();
+    }
+
+    if (audioContextRef.current) {
+      const audioContext = audioContextRef.current;
+
+      if (!analyserRef.current) {
+        analyserRef.current = audioContext.createAnalyser();
+        analyserRef.current.fftSize = 32; // Adjust for desired resolution
+      }
+
+      // Create a simple oscillator to simulate audio input
+      oscillatorRef.current = audioContext.createOscillator();
+      if (!gainNodeRef.current) {
+        gainNodeRef.current = audioContext.createGain();
+      }
+      if (!oscillatorRef.current) {
+        oscillatorRef.current = audioContext.createOscillator();
+        oscillatorRef.current.type = 'sine'; // Type of waveform
+        oscillatorRef.current.frequency.setValueAtTime(40, audioContext.currentTime); // Frequency in Hz
+      }
+
+      oscillatorRef.current.connect(gainNodeRef.current);
+      gainNodeRef.current.connect(analyserRef.current);
+      analyserRef.current.connect(audioContext.destination);
+
+      oscillatorRef.current.type = 'sine'; // Type of waveform
+      oscillatorRef.current.frequency.setValueAtTime(40, audioContext.currentTime); // Frequency in Hz
+      oscillatorRef.current.start();
+    }
+  };
+
+  const stopAudioVisualization = () => {
+    if (oscillatorRef.current) {
+      oscillatorRef.current.stop();
+      oscillatorRef.current.disconnect();
+      oscillatorRef.current = null;
+    }
+
+    if (gainNodeRef.current) {
+      gainNodeRef.current.disconnect();
+      gainNodeRef.current = null;
+    }
+
+    if (audioContextRef.current) {
+      audioContextRef.current.close();
+      audioContextRef.current = null;
+    }
+
+    analyserRef.current = null;
+
+  };
+
 
   const sendMessage = async (
     text: string,
@@ -292,7 +401,8 @@ export default function MessagesBody({
           setInputDisabled(false);
         }
       }
-      if (event.event === "thread.message.completed") handleMessageCompleted(event);
+      if (event.event === "thread.message.completed")
+        handleMessageCompleted(event);
       if (event.event === "thread.run.completed") handleRunCompleted(event);
     });
   };
@@ -336,28 +446,23 @@ export default function MessagesBody({
       if (/safari/i.test(userAgent) && !/chrome|chromium|crios/i.test(userAgent)) {
         if (hasUserInteracted) {
           // If user has already granted permission, play audio
-          await handleGenerateAudio(messageText, false);
-          tempAppendMessage?.map((text) => {
-            appendToLastMessage(text);
-          })
+          handleSpeak(messageText);
         } else {
           // Show prompt for first-time users 
           setStartMessage(messageText);
           setShowAudioPrompt(true);
         }
       } else {
-        await handleGenerateAudio(event.data.content[0].text.value, false)
-        tempAppendMessage?.map((text) => {
-          appendToLastMessage(text);
-        })
+        handleSpeak(messageText)
       }
-    } else {
-      tempAppendMessage?.map((text) => {
-        appendToLastMessage(text);
-      })
     }
+    // else {
+    //   tempAppendMessage?.map((text) => {
+    //     appendToLastMessage(text);
+    //   })
+    // }
     setInputDisabled(false);
-    setTempAppendMessage([]); //Clear the temporary message holder array to hold the next AI response
+    // setTempAppendMessage([]); //Clear the temporary message holder array to hold the next AI response
     currentQuestionNumber < 14
       ? checkForLastQuestionNumber(messageText)
       : currentQuestionNumber == 14
@@ -386,8 +491,9 @@ export default function MessagesBody({
   const handleTextDelta = (delta: any) => {
     // console.log("snapShot", snapshot)
     if (delta.value != null) {
-      tempAppendMessage.push(delta.value)
-      // appendToLastMessage(delta.value);
+      // tempAppendMessage.push(delta.value)
+      appendToLastMessage(delta.value);
+      // handleGenerateAudio(delta.value, false)
     }
     if (delta.annotations != null) {
       annotateLastMessage(delta.annotations);
@@ -494,7 +600,7 @@ export default function MessagesBody({
               className="btn bg-indigo-500 hover:bg-indigo-600 text-white"
               onClick={() => {
                 // Direct attempt to play the message audio on iOS
-                handleGenerateAudio(startMessage, true)
+                handleSpeak(startMessage)
                   .then(() => {
                     setHasUserInteracted(true);
                     localStorage.setItem('audioPermissionGranted', 'true');
@@ -547,8 +653,9 @@ export default function MessagesBody({
         messages={messages}
         quotedTexts={quotedTexts}
         currentQuestionNumber={currentQuestionNumber}
-        audioRef={audioRef}
+        // audioRef={audioRef}
         isPlaying={isPlaying}
+        analyserRef={analyserRef}
       />
     </div>
   );
