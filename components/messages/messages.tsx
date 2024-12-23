@@ -8,6 +8,7 @@ import { buttonOptions } from "../../constants/buttonOptions";
 import { MessageInput } from "./message-input";
 import { MessageBody } from "./message-body";
 import TestPanel from "./test-panel";
+import { ElevenLabsClient } from 'elevenlabs'
 
 export default function MessagesBody({
   setShowConfetti,
@@ -50,7 +51,7 @@ export default function MessagesBody({
   const [showAudioPrompt, setShowAudioPrompt] = useState(false);
   const [startMessage, setStartMessage] = useState("");
 
-  // const [tempAppendMessage, setTempAppendMessage] = useState<any>([]);
+  const [tempAppendMessage, setTempAppendMessage] = useState<any>([]);
 
   const analyserRef = useRef<AnalyserNode | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -110,6 +111,66 @@ export default function MessagesBody({
     console.log(response);
   };
 
+  const client = new ElevenLabsClient({ apiKey: "sk_b54400f5fc18c05b0bf7e5f2fee109f524f0f3d24b922258" });
+
+  const handleGenerateAudio = async (message: string, userInteraction: boolean) => {
+    setIsPlaying(false);
+    // To append AI responde to the chat on safari browser when users give initial permission for the audio
+    if (userInteraction) {
+      appendToLastMessage(message)
+    }
+    try {
+      // Start preloading audio while the API call is in progress
+      const audioElement = audioRef.current as HTMLAudioElement | null;
+      if (audioElement) {
+        audioElement.preload = "auto";
+        audioElement.pause();
+        audioElement.currentTime = 0;
+      }
+
+      const res = await client.textToSpeech.streamWithTimestamps(
+        "JBFqnCBsd6RMkjVDRZzb",
+        {
+          output_format: "mp3_44100_128",
+          text: message,
+          model_id: "eleven_multilingual_v2",
+        }
+      )
+      const audioChunks = [];
+
+      for await (const item of res) {
+        const byteCharacters = atob(item?.audio_base64); // Decode Base64 string to binary data
+        for (let i = 0; i < byteCharacters.length; i += 1024) {
+          const slice = byteCharacters.slice(i, i + 1024);
+          const byteNumbers = new Array(slice.length).fill(null).map((_, idx) => slice.charCodeAt(idx));
+          audioChunks.push(new Uint8Array(byteNumbers));
+        }
+      }
+      const audioBlob = new Blob(audioChunks, { type: "audio/mpeg" });
+      const audioUrl = URL.createObjectURL(audioBlob);
+
+      if (audioElement) {
+        audioElement.src = audioUrl;
+
+        // Add event listeners to handle playback state
+        audioElement.onplay = () => setIsPlaying(true);
+        audioElement.onpause = () => setIsPlaying(false);
+        audioElement.onended = () => setIsPlaying(false);
+
+        try {
+          await audioElement.play();
+        } catch (playError) {
+          console.error("Error playing audio:", playError);
+          // Handle autoplay restrictions
+          if (playError.name === 'NotAllowedError') {
+            console.log('Audio autoplay was prevented. User interaction required.');
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error generating audio:", error);
+    }
+  };
 
   // const handleGenerateAudio = async (message: string, userInteraction: boolean) => {
   //   setIsPlaying(false);
@@ -146,6 +207,7 @@ export default function MessagesBody({
   //     if (!reader) {
   //       throw new Error("Unable to read audio stream");
   //     }
+  //     console.log(reader, "reader")
 
   //     // Read audio stream chunks
   //     while (true) {
@@ -153,6 +215,7 @@ export default function MessagesBody({
   //       if (done) break;
   //       audioChunks.push(value);
   //     }
+  //     console.log(audioChunks, "audioChunks")
 
   //     const audioBlob = new Blob(audioChunks, { type: "audio/mpeg" });
   //     const audioUrl = URL.createObjectURL(audioBlob);
@@ -179,25 +242,6 @@ export default function MessagesBody({
   //     console.error("Error generating audio:", error);
   //   }
   // };
-
-
-
-  // const [desiredVoice, setDesiredVoice] = useState<SpeechSynthesisVoice | null>(null);
-
-  // useEffect(() => {
-  //   const loadVoices = () => {
-  //     const availableVoices = window.speechSynthesis.getVoices();
-  //     // Set your desired voice by name or language
-  //     const voice = availableVoices.find((v) => v.name ===  'Google UK English Male' || v.lang === 'en-GB');
-  //     setDesiredVoice(voice || null);
-  //   };
-
-  //   if (window.speechSynthesis.onvoiceschanged !== undefined) {
-  //     window.speechSynthesis.onvoiceschanged = loadVoices;
-  //   } else {
-  //     loadVoices();
-  //   }
-  // }, []);
 
   const handleSpeak = async (message: string) => {
     if ('speechSynthesis' in window) {
@@ -304,7 +348,109 @@ export default function MessagesBody({
 
   };
 
+  // const sendMessage = async (
+  //   text: string,
+  //   assistantIdPreview: string | null
+  // ) => {
+  //   try {
+  //     const response = await fetch(
+  //       `/api/assistants/threads/${threadId}/messages`,
+  //       {
+  //         method: "POST",
+  //         body: JSON.stringify({
+  //           content: text,
+  //           assistant_id: assistantIdPreview || assistantId,
+  //           isRefresh,
+  //         }),
+  //       }
+  //     );
 
+  //     if (!response.ok) {
+  //       setIsRefresh(false);
+  //       throw new Error("Failed to send message");
+  //     }
+
+  //     setIsRefresh(false);
+
+  //     // Parse the multipart/mixed response
+  //     const boundary = response.headers
+  //       .get("Content-Type")
+  //       ?.split("boundary=")[1];
+  //     if (!boundary) throw new Error("Boundary not found in response headers");
+
+  //     const reader = response.body?.getReader();
+  //     if (!reader) throw new Error("Failed to read response body");
+
+  //     const decoder = new TextDecoder();
+  //     let partialData = "";
+
+  //     while (true) {
+  //       const { done, value } = await reader.read();
+  //       if (done) break;
+
+  //       // Decode the chunk and process
+  //       partialData += decoder.decode(value, { stream: true });
+
+  //       const parts = partialData.split(`--${boundary}`);
+  //       partialData = parts.pop() || ""; // Keep incomplete part for next chunk
+
+  //       for (const part of parts) {
+  //         if (part.includes("Content-Type: application/json")) {
+  //           console.log("parts", part)
+  //           // Extract text part
+  //           const textMatch = part.match(/{.*}/s);
+  //           if (textMatch) {
+  //             const json = JSON.parse(textMatch[0]);
+  //             // const data = await json.json();
+
+  //             //  console.log("Text response:", data);
+  //             // const stream = AssistantStream.fromReadableStream(data);
+  //             // handleReadableStream(stream);
+  //             // Update messages state with the text response
+  //             setMessages((prevMessages) => [
+  //               ...prevMessages,
+  //               { role: "assistant", text: json.data },
+  //             ]);
+  //           }
+  //         } else if (part.includes("Content-Type: audio/mpeg")) {
+  //           const audioElement = audioRef.current as HTMLAudioElement | null;
+  //           // Extract audio part
+  //           const audioStart = part.indexOf("\r\n\r\n") + 4;
+  //           const audioBlob = new Blob([part.slice(audioStart)], {
+  //             type: "audio/mpeg",
+  //           });
+
+  //           console.log("Audio response received");
+  //           const audioUrl = URL.createObjectURL(audioBlob);
+  //           console.log("audioURL", audioUrl)
+  //           console.log("audioBlob", audioBlob)
+
+  //           if (audioRef.current) {
+  //             (audioRef.current as HTMLAudioElement).src = audioUrl;
+  //             setIsPlaying(true);
+  //             (audioRef.current as HTMLAudioElement).play();
+  //           }
+  //         }
+  //       }
+  //     }
+  //   } catch (error) {
+  //     console.error("Error sending message:", error);
+  //     handleError(JSON.stringify(error), "failed");
+  //     setIsRefresh(false);
+
+  //     setMessages((prevMessages) => {
+  //       const newMessages = prevMessages.slice(0, -1);
+  //       return [
+  //         ...newMessages,
+  //         {
+  //           role: "assistant",
+  //           text: "An error occurred while processing your message. Please try again.",
+  //         },
+  //       ];
+  //     });
+  //     setInputDisabled(false);
+  //   }
+  // };
   const sendMessage = async (
     text: string,
     assistantIdPreview: string | null
@@ -468,23 +614,31 @@ export default function MessagesBody({
       if (/safari/i.test(userAgent) && !/chrome|chromium|crios/i.test(userAgent)) {
         if (hasUserInteracted) {
           // If user has already granted permission, play audio
-          handleSpeak(messageText);
+          // handleSpeak(messageText);
+          await handleGenerateAudio(messageText, false);
+          tempAppendMessage?.map((message: string) => {
+            appendToLastMessage(message)
+          })
         } else {
           // Show prompt for first-time users 
           setStartMessage(messageText);
           setShowAudioPrompt(true);
         }
       } else {
-        handleSpeak(messageText)
+        await handleGenerateAudio(messageText, false);
+        tempAppendMessage?.map((message: string) => {
+          appendToLastMessage(message)
+        })
+        // handleSpeak(messageText)
       }
     }
-    // else {
-    //   tempAppendMessage?.map((text) => {
-    //     appendToLastMessage(text);
-    //   })
-    // }
+    else {
+      tempAppendMessage?.map((text) => {
+        appendToLastMessage(text);
+      })
+    }
     setInputDisabled(false);
-    // setTempAppendMessage([]); //Clear the temporary message holder array to hold the next AI response
+    setTempAppendMessage([]); //Clear the temporary message holder array to hold the next AI response
     currentQuestionNumber < 14
       ? checkForLastQuestionNumber(messageText)
       : currentQuestionNumber == 14
@@ -513,8 +667,8 @@ export default function MessagesBody({
   const handleTextDelta = (delta: any) => {
     // console.log("snapShot", snapshot)
     if (delta.value != null) {
-      // tempAppendMessage.push(delta.value)
-      appendToLastMessage(delta.value);
+      tempAppendMessage.push(delta.value)
+      // appendToLastMessage(delta.value);
       // handleGenerateAudio(delta.value, false)
     }
     if (delta.annotations != null) {
@@ -622,7 +776,7 @@ export default function MessagesBody({
               className="btn bg-indigo-500 hover:bg-indigo-600 text-white"
               onClick={() => {
                 // Direct attempt to play the message audio on iOS
-                handleSpeak(startMessage)
+                handleGenerateAudio(startMessage, true)
                   .then(() => {
                     setHasUserInteracted(true);
                     localStorage.setItem('audioPermissionGranted', 'true');
@@ -675,7 +829,7 @@ export default function MessagesBody({
         messages={messages}
         quotedTexts={quotedTexts}
         currentQuestionNumber={currentQuestionNumber}
-        // audioRef={audioRef}
+        audioRef={audioRef}
         isPlaying={isPlaying}
         analyserRef={analyserRef}
       />
