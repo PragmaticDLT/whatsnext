@@ -227,40 +227,40 @@ export default function MessagesBody({
 
   const handleGenerateAudio = async (message: string, userInteraction: boolean) => {
     setIsPlaying(false);
-    
+
     if (userInteraction) {
       appendToLastMessage(message);
     }
-  
+
     try {
       const audioElement = audioRef.current as HTMLAudioElement | null;
       if (!audioElement) return;
-  
+
       // Split the message into chunks
       const textChunks = splitTextIntoChunks(message, MAX_CHUNK_LENGTH);
-      
+
       // Start generating all audio chunks in parallel
       const audioPromises = textChunks.map(chunk => generateSingleAudioChunk(chunk));
-      
+
       // Play chunks sequentially while others are being generated
       for (let i = 0; i < textChunks.length; i++) {
         // Reset audio element
         audioElement.preload = "auto";
         audioElement.pause();
         audioElement.currentTime = 0;
-  
+
         // Wait for the current chunk's audio to be generated
         const audioBlob = await audioPromises[i];
         const audioUrl = URL.createObjectURL(audioBlob);
-        
+
         // Set up audio element
         audioElement.src = audioUrl;
-        
+
         // Set up event listeners
         audioElement.onplay = () => setIsPlaying(true);
         audioElement.onpause = () => setIsPlaying(false);
         audioElement.onended = () => setIsPlaying(false);
-  
+
         // Play current chunk and wait for it to finish
         try {
           await audioElement.play();
@@ -733,19 +733,20 @@ export default function MessagesBody({
             await handleGenerateAudio(splitMessage[0], false);
 
           } else if (messageText?.startsWith("I’ve analyzed your answers to the questions and have identified frequently")) {
-            const parts = messageText.split('|');
-            const introText = parts[0].trim();
+            const introText = messageText.split('|')[0].trim();
 
-            const secondPart = parts[1].split('Keyword Table: This table breaks down frequently mentioned keywords within each category/life area.');
-
-            const lastTableIndex = secondPart[1].lastIndexOf('\n|');
-            const conclusionText = secondPart[1]
-              .substring(lastTableIndex)
+            // Get the conclusion text (after last table)
+            const sections = messageText.split('\n|');
+            const lastSection = sections[sections.length - 1];
+            const conclusionText = lastSection
               .split('\n')
               .filter(line => !line.includes('|'))
               .join('\n')
               .trim();
-            const textForAudio = introText + conclusionText;
+
+            const textForAudio = `${introText}\n\n${conclusionText}`;
+            
+
             await handleGenerateAudio(textForAudio, false);
           } else {
             await handleGenerateAudio(messageText, false);
@@ -823,7 +824,7 @@ export default function MessagesBody({
     // console.log("snapShot", snapshot)
     if (delta.value != null) {
       // tempAppendMessage.push(delta.value)
-       appendToLastMessage(delta.value);
+      appendToLastMessage(delta.value);
       // handleGenerateAudio(delta.value, false)
     }
     if (delta.annotations != null) {
