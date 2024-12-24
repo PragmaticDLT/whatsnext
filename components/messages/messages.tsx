@@ -745,8 +745,8 @@ export default function MessagesBody({
               .trim();
 
             const textForAudio = `${introText}\n\n${conclusionText}`;
-            
 
+            
             await handleGenerateAudio(textForAudio, false);
           } else {
             await handleGenerateAudio(messageText, false);

@@ -151,10 +151,17 @@ export const MessageInput = ({
     }
   };
 
+  const handleStopAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+  };
+
   useEffect(() => {
     if (messageInput.length <= 0) {
       adjustTextareaHeight("min");
-    }else {
+    } else {
       adjustTextareaHeight("max");
     }
   }, [messageInput]);
@@ -332,10 +339,20 @@ export const MessageInput = ({
           </div>
         </div>
         <div className="flex justify-center items-center gap-2">
-          {/* Speaker icon */}
-          <button className={`btn ${isPlaying ? 'bg-black' : 'bg-[#a0a0a0]'} text-white rounded-full w-10 h-10 flex items-center justify-center mr-2`}>
-            <object data="/svg/speaker.svg" width='20px' height='20px'></object>
-          </button>
+          {isPlaying ? (
+            <button
+              onClick={handleStopAudio}
+              className="btn bg-red-500 hover:bg-red-600 text-white rounded-full w-10 h-10 flex items-center justify-center mr-2"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <rect x="6" y="6" width="8" height="8" />
+              </svg>
+            </button>
+          ) : (
+            <button className={`btn ${isPlaying ? 'bg-black' : 'bg-[#a0a0a0]'} text-white rounded-full w-10 h-10 flex items-center justify-center mr-2`}>
+              <object data="/svg/speaker.svg" width='20px' height='20px'></object>
+            </button>
+          )}
           <audio ref={audioRef} controls style={{ display: "none" }}>
             Your browser does not support the audio element.
           </audio>
