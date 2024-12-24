@@ -36,10 +36,21 @@ export const MessageInput = ({
   const [audioAnalyser, setAudioAnalyser] = useState<AnalyserNode | null>(null);
   const [style, setStyles] = useState({})
 
-  const adjustTextareaHeight = () => {
+  const [textareaHeight, setTextareaHeight] = useState<string>("2.5rem");
+
+  const adjustTextareaHeight = (size: string) => {
     if (InputRef?.current) {
-      InputRef.current.style.height = "auto";
-      InputRef.current.style.height = `${InputRef.current.scrollHeight}px`;
+      if (size === "max") {
+        const newHeight = Math.max(40, InputRef.current.scrollHeight);
+        setTextareaHeight(`${newHeight}px`)
+      } else if (size === "min") {
+        InputRef.current.style.height = "auto";
+        InputRef.current.style.height = `${InputRef.current.scrollHeight}px`;
+      }
+      // const newHeight = Math.max(40, InputRef.current.scrollHeight);
+      // setTextareaHeight(`${newHeight}px`)
+      // InputRef.current.style.height = "auto";
+      // InputRef.current.style.height = `${InputRef.current.scrollHeight}px`;
     }
   };
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -132,7 +143,7 @@ export const MessageInput = ({
 
       const data = await response.json();
       if (data.text) {
-        setMessageInput(data.text)
+        setMessageInput(data.text);
       }
     } catch (error) {
       console.error("Error transcribing audio:", error);
@@ -142,7 +153,9 @@ export const MessageInput = ({
 
   useEffect(() => {
     if (messageInput.length <= 0) {
-      adjustTextareaHeight();
+      adjustTextareaHeight("min");
+    }else {
+      adjustTextareaHeight("max");
     }
   }, [messageInput]);
 
@@ -404,13 +417,17 @@ export const MessageInput = ({
               value={messageInput}
               onChange={(e) => {
                 setMessageInput(e.target.value);
-                adjustTextareaHeight();
+                adjustTextareaHeight("min");
               }}
               onKeyDown={handleKeyDown}
               disabled={inputDisabled}
               ref={InputRef}
               rows={1}
-              style={{ minHeight: "2.5rem", maxHeight: "10rem" }}
+              style={{
+                height: textareaHeight,
+                minHeight: "2.5rem",
+                maxHeight: "10rem"
+              }}
             />
           </div>
           <div className="flex">

@@ -45,24 +45,45 @@ export const createCalendarEvent = ({
     eventEndDate,
     "yyyyMMdd"
   )}`;
+
+  const eventHour = parseInt("9am");
+  const eventEndHour = parseInt("10am");
+
+
+  // Create a date-time with the specified hour in the local timezone
+  let eventDateTime = setHours(firstEventDate, eventHour);
+  let eventEndDateTime = setHours(firstEventDate, eventEndHour);
+
+    // Convert to the specified timezone using toLocaleString (For the event Starting time)
+    const eventDateTimeInTimezone = new Date(
+      eventDateTime.toLocaleString("en-US", {
+      })
+    );
+  
+    // Convert to the specified timezone using toLocaleString (For the event ending time)
+    const eventEndDateTimeInTimezone = new Date(
+      eventEndDateTime.toLocaleString("en-US", {
+      })
+    );
+
   const formattedStartDate = format(
-    firstEventDate,
-    "yyyyMMdd"
+    eventDateTimeInTimezone,
+    "yyyyMMdd'T'HHmmss"
   );
   const formattedEndDate = format(
-    eventEndDate,
-    "yyyyMMdd"
+    eventEndDateTimeInTimezone,
+   "yyyyMMdd'T'HHmmss"
   );
 
   // Event start and end date format for outlook
   const outLookFormatStartDate = format(
-    firstEventDate,
-    "yyyy-MM-dd"
+    eventDateTimeInTimezone,
+   "yyyy-MM-dd'T'HH:mm:ss"
   )
 
   const outLookFormatEndDate = format(
-    eventEndDate,
-    "yyyy-MM-dd"
+    eventEndDateTimeInTimezone,
+    "yyyy-MM-dd'T'HH:mm:ss"
   )
 
   // Generate the event link based on the calendar type

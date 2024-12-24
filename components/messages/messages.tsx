@@ -111,59 +111,170 @@ export default function MessagesBody({
     console.log(response);
   };
 
-  const client = new ElevenLabsClient({ apiKey: "sk_b54400f5fc18c05b0bf7e5f2fee109f524f0f3d24b922258" });
+  // const client = new ElevenLabsClient({ apiKey: "sk_b54400f5fc18c05b0bf7e5f2fee109f524f0f3d24b922258" });
+
+  // const handleGenerateAudio = async (message: string, userInteraction: boolean) => {
+  //   setIsPlaying(false);
+  //   // To append AI responde to the chat on safari browser when users give initial permission for the audio
+  //   if (userInteraction) {
+  //     appendToLastMessage(message)
+  //   }
+  //   try {
+  //     // Start preloading audio while the API call is in progress
+  //     const audioElement = audioRef.current as HTMLAudioElement | null;
+  //     if (audioElement) {
+  //       audioElement.preload = "auto";
+  //       audioElement.pause();
+  //       audioElement.currentTime = 0;
+  //     }
+
+  //     const res = await client.textToSpeech.streamWithTimestamps(
+  //       "JBFqnCBsd6RMkjVDRZzb",
+  //       {
+  //         output_format: "mp3_44100_128",
+  //         text: message,
+  //         model_id: "eleven_multilingual_v2",
+  //       }
+  //     )
+  //     const audioChunks = [];
+
+  //     for await (const item of res) {
+  //       const byteCharacters = atob(item?.audio_base64); // Decode Base64 string to binary data
+  //       for (let i = 0; i < byteCharacters.length; i += 1024) {
+  //         const slice = byteCharacters.slice(i, i + 1024);
+  //         const byteNumbers = new Array(slice.length).fill(null).map((_, idx) => slice.charCodeAt(idx));
+  //         audioChunks.push(new Uint8Array(byteNumbers));
+  //       }
+  //     }
+  //     const audioBlob = new Blob(audioChunks, { type: "audio/mpeg" });
+  //     const audioUrl = URL.createObjectURL(audioBlob);
+
+  //     if (audioElement) {
+  //       audioElement.src = audioUrl;
+
+  //       // Add event listeners to handle playback state
+  //       audioElement.onplay = () => setIsPlaying(true);
+  //       audioElement.onpause = () => setIsPlaying(false);
+  //       audioElement.onended = () => setIsPlaying(false);
+
+  //       try {
+  //         await audioElement.play();
+  //       } catch (playError) {
+  //         console.error("Error playing audio:", playError);
+  //         // Handle autoplay restrictions
+  //         if (playError.name === 'NotAllowedError') {
+  //           console.log('Audio autoplay was prevented. User interaction required.');
+  //         }
+  //       }
+  //     }
+  //   } catch (error) {
+  //     console.error("Error generating audio:", error);
+  //   }
+  // };
+
+  const MAX_CHUNK_LENGTH = 50; // Maximum characters per chunk
+
+  const splitTextIntoChunks = (text: string, maxLength: number): string[] => {
+    const chunks: string[] = [];
+    let currentChunk = '';
+
+    // Split by sentences to maintain natural breaks
+    const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+
+    for (const sentence of sentences) {
+      if ((currentChunk + sentence).length <= maxLength) {
+        currentChunk += sentence;
+      } else {
+        if (currentChunk) chunks.push(currentChunk.trim());
+        currentChunk = sentence;
+      }
+    }
+
+    if (currentChunk) chunks.push(currentChunk.trim());
+    return chunks;
+  };
+
+  const generateSingleAudioChunk = async (message: string): Promise<Blob> => {
+    const res = await fetch("/api/read-audio", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        response: message
+      }),
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to fetch audio");
+    }
+
+    const reader = res.body?.getReader();
+    const audioChunks = [];
+
+    if (!reader) {
+      throw new Error("Unable to read audio stream");
+    }
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      audioChunks.push(value);
+    }
+
+    return new Blob(audioChunks, { type: "audio/mpeg" });
+  };
 
   const handleGenerateAudio = async (message: string, userInteraction: boolean) => {
     setIsPlaying(false);
-    // To append AI responde to the chat on safari browser when users give initial permission for the audio
+    
     if (userInteraction) {
-      appendToLastMessage(message)
+      appendToLastMessage(message);
     }
+  
     try {
-      // Start preloading audio while the API call is in progress
       const audioElement = audioRef.current as HTMLAudioElement | null;
-      if (audioElement) {
+      if (!audioElement) return;
+  
+      // Split the message into chunks
+      const textChunks = splitTextIntoChunks(message, MAX_CHUNK_LENGTH);
+      
+      // Start generating all audio chunks in parallel
+      const audioPromises = textChunks.map(chunk => generateSingleAudioChunk(chunk));
+      
+      // Play chunks sequentially while others are being generated
+      for (let i = 0; i < textChunks.length; i++) {
+        // Reset audio element
         audioElement.preload = "auto";
         audioElement.pause();
         audioElement.currentTime = 0;
-      }
-
-      const res = await client.textToSpeech.streamWithTimestamps(
-        "JBFqnCBsd6RMkjVDRZzb",
-        {
-          output_format: "mp3_44100_128",
-          text: message,
-          model_id: "eleven_multilingual_v2",
-        }
-      )
-      const audioChunks = [];
-
-      for await (const item of res) {
-        const byteCharacters = atob(item?.audio_base64); // Decode Base64 string to binary data
-        for (let i = 0; i < byteCharacters.length; i += 1024) {
-          const slice = byteCharacters.slice(i, i + 1024);
-          const byteNumbers = new Array(slice.length).fill(null).map((_, idx) => slice.charCodeAt(idx));
-          audioChunks.push(new Uint8Array(byteNumbers));
-        }
-      }
-      const audioBlob = new Blob(audioChunks, { type: "audio/mpeg" });
-      const audioUrl = URL.createObjectURL(audioBlob);
-
-      if (audioElement) {
+  
+        // Wait for the current chunk's audio to be generated
+        const audioBlob = await audioPromises[i];
+        const audioUrl = URL.createObjectURL(audioBlob);
+        
+        // Set up audio element
         audioElement.src = audioUrl;
-
-        // Add event listeners to handle playback state
+        
+        // Set up event listeners
         audioElement.onplay = () => setIsPlaying(true);
         audioElement.onpause = () => setIsPlaying(false);
         audioElement.onended = () => setIsPlaying(false);
-
+  
+        // Play current chunk and wait for it to finish
         try {
           await audioElement.play();
+          await new Promise(resolve => {
+            audioElement.onended = () => {
+              URL.revokeObjectURL(audioUrl); // Clean up the URL
+              resolve(null);
+            };
+          });
         } catch (playError) {
           console.error("Error playing audio:", playError);
-          // Handle autoplay restrictions
           if (playError.name === 'NotAllowedError') {
             console.log('Audio autoplay was prevented. User interaction required.');
+            break;
           }
         }
       }
@@ -171,6 +282,7 @@ export default function MessagesBody({
       console.error("Error generating audio:", error);
     }
   };
+
 
   // const handleGenerateAudio = async (message: string, userInteraction: boolean) => {
   //   setIsPlaying(false);
@@ -608,14 +720,36 @@ export default function MessagesBody({
     if (!(messageText?.startsWith("Hey! Hello! Welcome")
       || messageText?.startsWith("We recommend taking a 15 to 20 minute break")
       || messageText?.includes("Congrats, you’ve completed the What's Next Next Life Coaching part of this Course!")
-      || messageText?.includes("That's all the questions! Great job!")
-      || messageText?.startsWith("That's a tough challenge!")
+      // || messageText?.includes("That's all the questions! Great job!")
+      // || messageText?.startsWith("That's a tough challenge!")
       || messageText.startsWith("```json"))) {
+
       if (/safari/i.test(userAgent) && !/chrome|chromium|crios/i.test(userAgent)) {
         if (hasUserInteracted) {
           // If user has already granted permission, play audio
           // handleSpeak(messageText);
-          await handleGenerateAudio(messageText, false);
+          if (messageText?.includes("That's all the questions! Great job!")) {
+            const splitMessage = messageText.split("Here are your answers to the questions 1 through 13");
+            await handleGenerateAudio(splitMessage[0], false);
+
+          } else if (messageText?.startsWith("I’ve analyzed your answers to the questions and have identified frequently")) {
+            const parts = messageText.split('|');
+            const introText = parts[0].trim();
+
+            const secondPart = parts[1].split('Keyword Table: This table breaks down frequently mentioned keywords within each category/life area.');
+
+            const lastTableIndex = secondPart[1].lastIndexOf('\n|');
+            const conclusionText = secondPart[1]
+              .substring(lastTableIndex)
+              .split('\n')
+              .filter(line => !line.includes('|'))
+              .join('\n')
+              .trim();
+            const textForAudio = introText + conclusionText;
+            await handleGenerateAudio(textForAudio, false);
+          } else {
+            await handleGenerateAudio(messageText, false);
+          }
           tempAppendMessage?.map((message: string) => {
             appendToLastMessage(message)
           })
@@ -625,7 +759,28 @@ export default function MessagesBody({
           setShowAudioPrompt(true);
         }
       } else {
-        await handleGenerateAudio(messageText, false);
+        if (messageText?.includes("That's all the questions! Great job!")) {
+          const splitMessage = messageText.split("Here are your answers to the questions 1 through 13");
+          await handleGenerateAudio(splitMessage[0], false);
+
+        } else if (messageText?.startsWith("I’ve analyzed your answers to the questions and have identified frequently")) {
+          const parts = messageText.split('|');
+          const introText = parts[0].trim();
+
+          const secondPart = parts[1].split('Keyword Table: This table breaks down frequently mentioned keywords within each category/life area.');
+
+          const lastTableIndex = secondPart[1].lastIndexOf('\n|');
+          const conclusionText = secondPart[1]
+            .substring(lastTableIndex)
+            .split('\n')
+            .filter(line => !line.includes('|'))
+            .join('\n')
+            .trim();
+          const textForAudio = introText + conclusionText;
+          await handleGenerateAudio(textForAudio, false);
+        } else {
+          await handleGenerateAudio(messageText, false);
+        }
         tempAppendMessage?.map((message: string) => {
           appendToLastMessage(message)
         })
@@ -667,8 +822,8 @@ export default function MessagesBody({
   const handleTextDelta = (delta: any) => {
     // console.log("snapShot", snapshot)
     if (delta.value != null) {
-      tempAppendMessage.push(delta.value)
-      // appendToLastMessage(delta.value);
+      // tempAppendMessage.push(delta.value)
+       appendToLastMessage(delta.value);
       // handleGenerateAudio(delta.value, false)
     }
     if (delta.annotations != null) {
