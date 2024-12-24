@@ -745,8 +745,6 @@ export default function MessagesBody({
               .trim();
 
             const textForAudio = `${introText}\n\n${conclusionText}`;
-
-            
             await handleGenerateAudio(textForAudio, false);
           } else {
             await handleGenerateAudio(messageText, false);
@@ -765,20 +763,19 @@ export default function MessagesBody({
           await handleGenerateAudio(splitMessage[0], false);
 
         } else if (messageText?.startsWith("I’ve analyzed your answers to the questions and have identified frequently")) {
-          const parts = messageText.split('|');
-          const introText = parts[0].trim();
+          const introText = messageText.split('|')[0].trim();
 
-          const secondPart = parts[1].split('Keyword Table: This table breaks down frequently mentioned keywords within each category/life area.');
+            // Get the conclusion text (after last table)
+            const sections = messageText.split('\n|');
+            const lastSection = sections[sections.length - 1];
+            const conclusionText = lastSection
+              .split('\n')
+              .filter(line => !line.includes('|'))
+              .join('\n')
+              .trim();
 
-          const lastTableIndex = secondPart[1].lastIndexOf('\n|');
-          const conclusionText = secondPart[1]
-            .substring(lastTableIndex)
-            .split('\n')
-            .filter(line => !line.includes('|'))
-            .join('\n')
-            .trim();
-          const textForAudio = introText + conclusionText;
-          await handleGenerateAudio(textForAudio, false);
+            const textForAudio = `${introText}\n\n${conclusionText}`;
+            await handleGenerateAudio(textForAudio, false);
         } else {
           await handleGenerateAudio(messageText, false);
         }

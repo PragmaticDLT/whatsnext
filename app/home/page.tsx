@@ -19,14 +19,14 @@ export default function Home() {
       {chatSelected && (
         <div className="mx-4 w-full flex flex-end flex-row">
           <button
-            className={`btn ${
-              chatSelected.messages.lenght <= 1
+            className={`btn ${chatSelected.messages.lenght <= 1
                 ? "bg-indigo-600"
                 : "bg-indigo-500"
-            } hover:bg-indigo-600 text-white`}
+              } hover:bg-indigo-600 text-white`}
             disabled={chatSelected.messages.lenght <= 1}
             onClick={() => {
-              setIsOpen(true);
+              setIsOpen(true)
+
             }}
           >
             Start from beginning
@@ -57,6 +57,9 @@ export default function Home() {
               onClick={() => {
                 clearChat();
                 setIsOpen(false);
+                localStorage.removeItem("firstPlay");
+                localStorage.removeItem("breakPlay");
+                localStorage.removeItem("endPlay");
               }}
             >
               Yes

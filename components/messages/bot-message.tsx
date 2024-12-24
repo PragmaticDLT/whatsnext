@@ -27,10 +27,30 @@ function BotMessage({
   const { setParsedJson, parsedJson, setInputDate, setSpecialButtons } = useChatsContext();
   const [parsedJsonLocal, setParsedJsonLocal] = useState<any>(null);
   const videoRef = useRef(null);
-
+  const [firstAutoPlay, setFirstAutoplay] = useState(() => {
+    return localStorage.getItem('firstPlay') === 'false'
+  });
+  const [breakAutoplay, setBreakAutoplay] = useState(() => {
+    return localStorage.getItem('breakPlay') === 'false'
+  })
+  const [endAutoplay, setendAutoplay] = useState(() => {
+    return localStorage.getItem('endPlay') === 'false'
+  })
   // To automatically start the question when the video ends
-  const handleEndVideo = () => {
-    handleSendMessage("Start the questions")
+  // const handleEndVideo = () => {
+  //   // setAutoplay(true);
+  //   // handleSendMessage("Start the questions")
+  // }
+
+  // To manage video auto play when users scroll to the video section after load
+  const handleVideoLoad = (video: string) => {
+    if (video === "First") {
+      localStorage.setItem('firstPlay', 'false');
+    } else if (video === "break") {
+      localStorage.setItem('breakPlay', 'false');
+    } else {
+      localStorage.setItem('endPlay', 'false');
+    }
   }
 
   useEffect(() => {
@@ -288,15 +308,15 @@ function BotMessage({
             ) : parsedJsonLocal ? (
               renderJsonContent(parsedJsonLocal)
             ) : text.startsWith("Hey! Hello! Welcome") ? (
-              <video ref={videoRef} onEnded={handleEndVideo} autoPlay controls width="640" className="xs:h-[400px] w-full">
+              <video ref={videoRef} onLoadStart={() => handleVideoLoad("First")} autoPlay={!firstAutoPlay} controls width="640" className="xs:h-[400px] w-full">
                 <source src="/videos/start.mp4" type="video/mp4" />
                 Your browser does not support the video tag.
               </video>) : text.startsWith("We recommend taking a 15 to 20 minute break") ?
-              (<video ref={videoRef} autoPlay controls width="640" className="xs:h-[400px] w-full">
+              (<video ref={videoRef} onLoadStart={() => handleVideoLoad("break")} autoPlay={!breakAutoplay} controls width="640" className="xs:h-[400px] w-full">
                 <source src="/videos/break.mp4" type="video/mp4" />
                 Your browser does not support the video tag.
               </video>) : text.includes("Congrats, you’ve completed the What's Next Next Life Coaching part of this Course!") ?
-                (<video ref={videoRef} autoPlay controls width="640" className="xs:h-[400px] w-full">
+                (<video ref={videoRef} onLoadStart={() => handleVideoLoad("end")} autoPlay={!endAutoplay} controls width="640" className="xs:h-[400px] w-full">
                   <source src="/videos/end.mp4" type="video/mp4" />
                   Your browser does not support the video tag.
                 </video>) : (

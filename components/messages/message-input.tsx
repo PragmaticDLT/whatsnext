@@ -47,10 +47,6 @@ export const MessageInput = ({
         InputRef.current.style.height = "auto";
         InputRef.current.style.height = `${InputRef.current.scrollHeight}px`;
       }
-      // const newHeight = Math.max(40, InputRef.current.scrollHeight);
-      // setTextareaHeight(`${newHeight}px`)
-      // InputRef.current.style.height = "auto";
-      // InputRef.current.style.height = `${InputRef.current.scrollHeight}px`;
     }
   };
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -142,8 +138,10 @@ export const MessageInput = ({
       }
 
       const data = await response.json();
+      console.log(data)
       if (data.text) {
-        setMessageInput(data.text);
+        const newMessage = messageInput + ' ' + data.text;
+        setMessageInput(newMessage.trim());
       }
     } catch (error) {
       console.error("Error transcribing audio:", error);
