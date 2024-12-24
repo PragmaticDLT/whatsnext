@@ -179,7 +179,7 @@ export default function MessagesBody({
     let currentChunk = '';
 
     // Split by sentences to maintain natural breaks
-    const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+    const sentences = text.split(/(?<=[.!?:]|\n)/).filter(s => s.trim());
 
     for (const sentence of sentences) {
       if ((currentChunk + sentence).length <= maxLength) {
