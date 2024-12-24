@@ -717,11 +717,11 @@ export default function MessagesBody({
 
   const handleMessageCompleted = async (event) => {
     const messageText = event.data.content[0].text.value;
+    extractQuotedTexts(messageText);
+
     if (!(messageText?.startsWith("Hey! Hello! Welcome")
       || messageText?.startsWith("We recommend taking a 15 to 20 minute break")
       || messageText?.includes("Congrats, you’ve completed the What's Next Next Life Coaching part of this Course!")
-      // || messageText?.includes("That's all the questions! Great job!")
-      // || messageText?.startsWith("That's a tough challenge!")
       || messageText.startsWith("```json"))) {
 
       if (/safari/i.test(userAgent) && !/chrome|chromium|crios/i.test(userAgent)) {
@@ -749,9 +749,9 @@ export default function MessagesBody({
           } else {
             await handleGenerateAudio(messageText, false);
           }
-          tempAppendMessage?.map((message: string) => {
-            appendToLastMessage(message)
-          })
+          // tempAppendMessage?.map((message: string) => {
+          //   appendToLastMessage(message)
+          // })
         } else {
           // Show prompt for first-time users 
           setStartMessage(messageText);
@@ -779,26 +779,25 @@ export default function MessagesBody({
         } else {
           await handleGenerateAudio(messageText, false);
         }
-        tempAppendMessage?.map((message: string) => {
-          appendToLastMessage(message)
-        })
+        // tempAppendMessage?.map((message: string) => {
+        //   appendToLastMessage(message)
+        // })
         // handleSpeak(messageText)
       }
     }
-    else {
-      tempAppendMessage?.map((text) => {
-        appendToLastMessage(text);
-      })
-    }
+    // else {
+    //   tempAppendMessage?.map((text) => {
+    //     appendToLastMessage(text);
+    //   })
+    // }
     setInputDisabled(false);
-    setTempAppendMessage([]); //Clear the temporary message holder array to hold the next AI response
+    // setTempAppendMessage([]); //Clear the temporary message holder array to hold the next AI response
     currentQuestionNumber < 14
       ? checkForLastQuestionNumber(messageText)
       : currentQuestionNumber == 14
         ? changeAssistant2()
         : null;
 
-    extractQuotedTexts(messageText);
 
     if (
       messageText.includes(

@@ -308,7 +308,6 @@ export const MessageInput = ({
       });
     };
   }, [isRecording, mediaRecorder]);
-
   return (
     <div className="sticky bottom-0 w-full ">
       <div className=" bg-[#c0c0c0] m-auto sm:w-[60%] lg:w-[30%] w-[90%] pt-1 pb-2 rounded-[3px] mb-2 ">
