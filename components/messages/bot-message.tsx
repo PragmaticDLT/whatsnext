@@ -36,11 +36,6 @@ function BotMessage({
   const [endAutoplay, setendAutoplay] = useState(() => {
     return localStorage.getItem('endPlay') === 'false'
   })
-  // To automatically start the question when the video ends
-  // const handleEndVideo = () => {
-  //   // setAutoplay(true);
-  //   // handleSendMessage("Start the questions")
-  // }
 
   // To manage video auto play when users scroll to the video section after load
   const handleVideoLoad = (video: string) => {

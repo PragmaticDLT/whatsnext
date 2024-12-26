@@ -8,7 +8,6 @@ import { buttonOptions } from "../../constants/buttonOptions";
 import { MessageInput } from "./message-input";
 import { MessageBody } from "./message-body";
 import TestPanel from "./test-panel";
-import { ElevenLabsClient } from 'elevenlabs'
 
 export default function MessagesBody({
   setShowConfetti,
@@ -44,19 +43,13 @@ export default function MessagesBody({
 
   // For safari browser to give permission for playing the audio
   const userAgent = typeof window !== 'undefined' ? navigator.userAgent : ''; // To identify users browser
+
   const [hasUserInteracted, setHasUserInteracted] = useState(() => {
     // Check if user has previously interacted
     return localStorage.getItem('audioPermissionGranted') === 'true'
   });
   const [showAudioPrompt, setShowAudioPrompt] = useState(false);
   const [startMessage, setStartMessage] = useState("");
-
-  const [tempAppendMessage, setTempAppendMessage] = useState<any>([]);
-
-  const analyserRef = useRef<AnalyserNode | null>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const oscillatorRef = useRef<OscillatorNode[] | null>(null);
-  const gainNodeRef = useRef<GainNode | null>(null);
 
   useEffect(() => {
     if (messages.length > 1) {
@@ -111,67 +104,6 @@ export default function MessagesBody({
     console.log(response);
   };
 
-  // const client = new ElevenLabsClient({ apiKey: "sk_b54400f5fc18c05b0bf7e5f2fee109f524f0f3d24b922258" });
-
-  // const handleGenerateAudio = async (message: string, userInteraction: boolean) => {
-  //   setIsPlaying(false);
-  //   // To append AI responde to the chat on safari browser when users give initial permission for the audio
-  //   if (userInteraction) {
-  //     appendToLastMessage(message)
-  //   }
-  //   try {
-  //     // Start preloading audio while the API call is in progress
-  //     const audioElement = audioRef.current as HTMLAudioElement | null;
-  //     if (audioElement) {
-  //       audioElement.preload = "auto";
-  //       audioElement.pause();
-  //       audioElement.currentTime = 0;
-  //     }
-
-  //     const res = await client.textToSpeech.streamWithTimestamps(
-  //       "JBFqnCBsd6RMkjVDRZzb",
-  //       {
-  //         output_format: "mp3_44100_128",
-  //         text: message,
-  //         model_id: "eleven_multilingual_v2",
-  //       }
-  //     )
-  //     const audioChunks = [];
-
-  //     for await (const item of res) {
-  //       const byteCharacters = atob(item?.audio_base64); // Decode Base64 string to binary data
-  //       for (let i = 0; i < byteCharacters.length; i += 1024) {
-  //         const slice = byteCharacters.slice(i, i + 1024);
-  //         const byteNumbers = new Array(slice.length).fill(null).map((_, idx) => slice.charCodeAt(idx));
-  //         audioChunks.push(new Uint8Array(byteNumbers));
-  //       }
-  //     }
-  //     const audioBlob = new Blob(audioChunks, { type: "audio/mpeg" });
-  //     const audioUrl = URL.createObjectURL(audioBlob);
-
-  //     if (audioElement) {
-  //       audioElement.src = audioUrl;
-
-  //       // Add event listeners to handle playback state
-  //       audioElement.onplay = () => setIsPlaying(true);
-  //       audioElement.onpause = () => setIsPlaying(false);
-  //       audioElement.onended = () => setIsPlaying(false);
-
-  //       try {
-  //         await audioElement.play();
-  //       } catch (playError) {
-  //         console.error("Error playing audio:", playError);
-  //         // Handle autoplay restrictions
-  //         if (playError.name === 'NotAllowedError') {
-  //           console.log('Audio autoplay was prevented. User interaction required.');
-  //         }
-  //       }
-  //     }
-  //   } catch (error) {
-  //     console.error("Error generating audio:", error);
-  //   }
-  // };
-
   const MAX_CHUNK_LENGTH = 50; // Maximum characters per chunk
 
   const splitTextIntoChunks = (text: string, maxLength: number): string[] => {
@@ -225,21 +157,21 @@ export default function MessagesBody({
     return new Blob(audioChunks, { type: "audio/mpeg" });
   };
 
+
   const handleGenerateAudio = async (message: string, userInteraction: boolean) => {
     setIsPlaying(false);
 
     if (userInteraction) {
-      appendToLastMessage(message);
+      setShowAudioPrompt(false);
+      setHasUserInteracted(true);
+      localStorage.setItem('audioPermissionGranted', 'true');
     }
 
     try {
       const audioElement = audioRef.current as HTMLAudioElement | null;
       if (!audioElement) return;
 
-      // Split the message into chunks
       const textChunks = splitTextIntoChunks(message, MAX_CHUNK_LENGTH);
-
-      // Start generating all audio chunks in parallel
       const audioPromises = textChunks.map(chunk => generateSingleAudioChunk(chunk));
 
       // Play chunks sequentially while others are being generated
@@ -249,19 +181,15 @@ export default function MessagesBody({
         audioElement.pause();
         audioElement.currentTime = 0;
 
-        // Wait for the current chunk's audio to be generated
         const audioBlob = await audioPromises[i];
         const audioUrl = URL.createObjectURL(audioBlob);
 
-        // Set up audio element
         audioElement.src = audioUrl;
 
-        // Set up event listeners
         audioElement.onplay = () => setIsPlaying(true);
         audioElement.onpause = () => setIsPlaying(false);
         audioElement.onended = () => setIsPlaying(false);
 
-        // Play current chunk and wait for it to finish
         try {
           await audioElement.play();
           await new Promise(resolve => {
@@ -283,286 +211,6 @@ export default function MessagesBody({
     }
   };
 
-
-  // const handleGenerateAudio = async (message: string, userInteraction: boolean) => {
-  //   setIsPlaying(false);
-  //   // To append AI responde to the chat on safari browser when users give initial permission for the audio
-  //   if (userInteraction) {
-  //     appendToLastMessage(message)
-  //   }
-  //   try {
-  //     // Start preloading audio while the API call is in progress
-  //     const audioElement = audioRef.current as HTMLAudioElement | null;
-  //     if (audioElement) {
-  //       audioElement.preload = "auto";
-  //       audioElement.pause();
-  //       audioElement.currentTime = 0;
-  //     }
-
-  //     const res = await fetch("/api/read-audio", {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify({
-  //         response: message
-  //       }),
-  //     });
-
-  //     if (!res.ok) {
-  //       throw new Error("Failed to fetch audio");
-  //     }
-
-  //     const reader = res.body?.getReader();
-  //     const audioChunks = [];
-
-  //     if (!reader) {
-  //       throw new Error("Unable to read audio stream");
-  //     }
-  //     console.log(reader, "reader")
-
-  //     // Read audio stream chunks
-  //     while (true) {
-  //       const { done, value } = await reader.read();
-  //       if (done) break;
-  //       audioChunks.push(value);
-  //     }
-  //     console.log(audioChunks, "audioChunks")
-
-  //     const audioBlob = new Blob(audioChunks, { type: "audio/mpeg" });
-  //     const audioUrl = URL.createObjectURL(audioBlob);
-
-  //     if (audioElement) {
-  //       audioElement.src = audioUrl;
-
-  //       // Add event listeners to handle playback state
-  //       audioElement.onplay = () => setIsPlaying(true);
-  //       audioElement.onpause = () => setIsPlaying(false);
-  //       audioElement.onended = () => setIsPlaying(false);
-
-  //       try {
-  //         await audioElement.play();
-  //       } catch (playError) {
-  //         console.error("Error playing audio:", playError);
-  //         // Handle autoplay restrictions
-  //         if (playError.name === 'NotAllowedError') {
-  //           console.log('Audio autoplay was prevented. User interaction required.');
-  //         }
-  //       }
-  //     }
-  //   } catch (error) {
-  //     console.error("Error generating audio:", error);
-  //   }
-  // };
-
-  const handleSpeak = async (message: string) => {
-    if ('speechSynthesis' in window) {
-      if (isPlaying) {
-        window.speechSynthesis.cancel();
-        stopAudioVisualization();
-        setIsPlaying(false);
-        return;
-      }
-
-      const utterance = new SpeechSynthesisUtterance(message);
-      // if (desiredVoice) {
-      //   utterance.voice = desiredVoice;
-      // }
-      utterance.onstart = () => {
-        setIsPlaying(true);
-        startAudioVisualization();
-      };
-
-      utterance.onend = () => {
-        setIsPlaying(false);
-        stopAudioVisualization();
-      };
-
-      window.speechSynthesis.speak(utterance);
-    } else {
-      alert('Sorry, your browser does not support text-to-speech.');
-    }
-  };
-
-  const startAudioVisualization = () => {
-    if (!audioContextRef.current) {
-      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-      audioContextRef.current = new AudioContextClass();
-    }
-
-    if (audioContextRef.current) {
-      const audioContext = audioContextRef.current;
-
-      if (!analyserRef.current) {
-        analyserRef.current = audioContext.createAnalyser();
-        analyserRef.current.fftSize = 32;
-      }
-
-      if (!gainNodeRef.current) {
-        gainNodeRef.current = audioContext.createGain();
-        // Set a lower gain value to prevent loud audio
-        gainNodeRef.current.gain.value = 0.1;
-      }
-
-      // Create multiple oscillators for a richer wave effect
-      const frequencies = [40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140];
-      oscillatorRef.current = frequencies.map(freq => {
-        const osc = audioContext.createOscillator();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, audioContext.currentTime);
-
-        // Add frequency modulation for wave-like effect
-        const modFreq = audioContext.currentTime;
-        osc.frequency.setValueCurveAtTime(
-          [freq - 10, freq + 10, freq - 10, freq + 10, freq - 10, freq + 10, freq - 10, freq + 10, freq - 10, freq + 10, freq - 10],
-          modFreq,
-          1
-        );
-
-        osc.connect(gainNodeRef.current!);
-        osc.start();
-        return osc;
-      });
-
-      gainNodeRef.current.connect(analyserRef.current);
-      analyserRef.current.connect(audioContext.destination);
-
-      // Animate the gain for wave effect
-      const now = audioContext.currentTime;
-      gainNodeRef.current.gain.setValueCurveAtTime(
-        [0.1, 0.2, 0.1, 0.15, 0.1],
-        now,
-        1
-      );
-    }
-  };
-
-  const stopAudioVisualization = () => {
-    if (oscillatorRef.current) {
-      oscillatorRef.current.forEach(osc => {
-        osc.stop();
-        osc.disconnect();
-      });
-      oscillatorRef.current = null;
-    }
-
-    if (gainNodeRef.current) {
-      gainNodeRef.current.disconnect();
-      gainNodeRef.current = null;
-    }
-
-    if (audioContextRef.current) {
-      audioContextRef.current.close();
-      audioContextRef.current = null;
-    }
-
-    analyserRef.current = null;
-
-  };
-
-  // const sendMessage = async (
-  //   text: string,
-  //   assistantIdPreview: string | null
-  // ) => {
-  //   try {
-  //     const response = await fetch(
-  //       `/api/assistants/threads/${threadId}/messages`,
-  //       {
-  //         method: "POST",
-  //         body: JSON.stringify({
-  //           content: text,
-  //           assistant_id: assistantIdPreview || assistantId,
-  //           isRefresh,
-  //         }),
-  //       }
-  //     );
-
-  //     if (!response.ok) {
-  //       setIsRefresh(false);
-  //       throw new Error("Failed to send message");
-  //     }
-
-  //     setIsRefresh(false);
-
-  //     // Parse the multipart/mixed response
-  //     const boundary = response.headers
-  //       .get("Content-Type")
-  //       ?.split("boundary=")[1];
-  //     if (!boundary) throw new Error("Boundary not found in response headers");
-
-  //     const reader = response.body?.getReader();
-  //     if (!reader) throw new Error("Failed to read response body");
-
-  //     const decoder = new TextDecoder();
-  //     let partialData = "";
-
-  //     while (true) {
-  //       const { done, value } = await reader.read();
-  //       if (done) break;
-
-  //       // Decode the chunk and process
-  //       partialData += decoder.decode(value, { stream: true });
-
-  //       const parts = partialData.split(`--${boundary}`);
-  //       partialData = parts.pop() || ""; // Keep incomplete part for next chunk
-
-  //       for (const part of parts) {
-  //         if (part.includes("Content-Type: application/json")) {
-  //           console.log("parts", part)
-  //           // Extract text part
-  //           const textMatch = part.match(/{.*}/s);
-  //           if (textMatch) {
-  //             const json = JSON.parse(textMatch[0]);
-  //             // const data = await json.json();
-
-  //             //  console.log("Text response:", data);
-  //             // const stream = AssistantStream.fromReadableStream(data);
-  //             // handleReadableStream(stream);
-  //             // Update messages state with the text response
-  //             setMessages((prevMessages) => [
-  //               ...prevMessages,
-  //               { role: "assistant", text: json.data },
-  //             ]);
-  //           }
-  //         } else if (part.includes("Content-Type: audio/mpeg")) {
-  //           const audioElement = audioRef.current as HTMLAudioElement | null;
-  //           // Extract audio part
-  //           const audioStart = part.indexOf("\r\n\r\n") + 4;
-  //           const audioBlob = new Blob([part.slice(audioStart)], {
-  //             type: "audio/mpeg",
-  //           });
-
-  //           console.log("Audio response received");
-  //           const audioUrl = URL.createObjectURL(audioBlob);
-  //           console.log("audioURL", audioUrl)
-  //           console.log("audioBlob", audioBlob)
-
-  //           if (audioRef.current) {
-  //             (audioRef.current as HTMLAudioElement).src = audioUrl;
-  //             setIsPlaying(true);
-  //             (audioRef.current as HTMLAudioElement).play();
-  //           }
-  //         }
-  //       }
-  //     }
-  //   } catch (error) {
-  //     console.error("Error sending message:", error);
-  //     handleError(JSON.stringify(error), "failed");
-  //     setIsRefresh(false);
-
-  //     setMessages((prevMessages) => {
-  //       const newMessages = prevMessages.slice(0, -1);
-  //       return [
-  //         ...newMessages,
-  //         {
-  //           role: "assistant",
-  //           text: "An error occurred while processing your message. Please try again.",
-  //         },
-  //       ];
-  //     });
-  //     setInputDisabled(false);
-  //   }
-  // };
   const sendMessage = async (
     text: string,
     assistantIdPreview: string | null
@@ -725,9 +373,8 @@ export default function MessagesBody({
       || messageText.startsWith("```json"))) {
 
       if (/safari/i.test(userAgent) && !/chrome|chromium|crios/i.test(userAgent)) {
+        // If user has already granted permission, play audio
         if (hasUserInteracted) {
-          // If user has already granted permission, play audio
-          // handleSpeak(messageText);
           if (messageText?.includes("That's all the questions! Great job!")) {
             const splitMessage = messageText.split("Here are your answers to the questions 1 through 13");
             await handleGenerateAudio(splitMessage[0], false);
@@ -749,9 +396,6 @@ export default function MessagesBody({
           } else {
             await handleGenerateAudio(messageText, false);
           }
-          // tempAppendMessage?.map((message: string) => {
-          //   appendToLastMessage(message)
-          // })
         } else {
           // Show prompt for first-time users 
           setStartMessage(messageText);
@@ -765,39 +409,28 @@ export default function MessagesBody({
         } else if (messageText?.startsWith("I’ve analyzed your answers to the questions and have identified frequently")) {
           const introText = messageText.split('|')[0].trim();
 
-            // Get the conclusion text (after last table)
-            const sections = messageText.split('\n|');
-            const lastSection = sections[sections.length - 1];
-            const conclusionText = lastSection
-              .split('\n')
-              .filter(line => !line.includes('|'))
-              .join('\n')
-              .trim();
+          // Get the conclusion text (after last table)
+          const sections = messageText.split('\n|');
+          const lastSection = sections[sections.length - 1];
+          const conclusionText = lastSection
+            .split('\n')
+            .filter(line => !line.includes('|'))
+            .join('\n')
+            .trim();
 
-            const textForAudio = `${introText}\n\n${conclusionText}`;
-            await handleGenerateAudio(textForAudio, false);
+          const textForAudio = `${introText}\n\n${conclusionText}`;
+          await handleGenerateAudio(textForAudio, false);
         } else {
           await handleGenerateAudio(messageText, false);
         }
-        // tempAppendMessage?.map((message: string) => {
-        //   appendToLastMessage(message)
-        // })
-        // handleSpeak(messageText)
       }
     }
-    // else {
-    //   tempAppendMessage?.map((text) => {
-    //     appendToLastMessage(text);
-    //   })
-    // }
     setInputDisabled(false);
-    // setTempAppendMessage([]); //Clear the temporary message holder array to hold the next AI response
     currentQuestionNumber < 14
       ? checkForLastQuestionNumber(messageText)
       : currentQuestionNumber == 14
         ? changeAssistant2()
         : null;
-
 
     if (
       messageText.includes(
@@ -817,11 +450,8 @@ export default function MessagesBody({
 
   // textDelta - append text to last assistant message
   const handleTextDelta = (delta: any) => {
-    // console.log("snapShot", snapshot)
     if (delta.value != null) {
-      // tempAppendMessage.push(delta.value)
       appendToLastMessage(delta.value);
-      // handleGenerateAudio(delta.value, false)
     }
     if (delta.annotations != null) {
       annotateLastMessage(delta.annotations);
@@ -931,8 +561,6 @@ export default function MessagesBody({
                 handleGenerateAudio(startMessage, true)
                   .then(() => {
                     setHasUserInteracted(true);
-                    localStorage.setItem('audioPermissionGranted', 'true');
-                    setShowAudioPrompt(false);
                   })
                   .catch(error => {
                     console.error('Failed to enable audio:', error);
@@ -954,6 +582,7 @@ export default function MessagesBody({
           </div>
         </div>
       )}
+
       <MessageBody
         messages={messages}
         messagesEndRef={messagesEndRef}
@@ -983,7 +612,6 @@ export default function MessagesBody({
         currentQuestionNumber={currentQuestionNumber}
         audioRef={audioRef}
         isPlaying={isPlaying}
-        analyserRef={analyserRef}
       />
     </div>
   );

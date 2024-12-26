@@ -1,4 +1,4 @@
-import { MutableRefObject, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { buttonOptions } from "../../constants/buttonOptions";
 import { useChatsContext } from "../../contexts/chats-context";
 import "../../app/css/additional-styles/toolTip.css"
@@ -14,7 +14,6 @@ export const MessageInput = ({
   currentQuestionNumber,
   audioRef,
   isPlaying,
-  analyserRef
 }: {
   messageInput: string;
   setMessageInput: (messageInput: string) => void;
@@ -26,7 +25,6 @@ export const MessageInput = ({
   currentQuestionNumber: number;
   audioRef: any,
   isPlaying: boolean,
-  analyserRef: MutableRefObject<AnalyserNode | null>
 }) => {
   const { activeButtons } = useChatsContext();
   const [isRecording, setIsRecording] = useState<boolean>(false);
@@ -35,8 +33,10 @@ export const MessageInput = ({
   const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
   const [audioAnalyser, setAudioAnalyser] = useState<AnalyserNode | null>(null);
   const [style, setStyles] = useState({})
-
   const [textareaHeight, setTextareaHeight] = useState<string>("2.5rem");
+
+  // For safari browser to give permission for playing the audio
+  const userAgent = typeof window !== 'undefined' ? navigator.userAgent : ''; // To identify users browser
 
   const adjustTextareaHeight = (size: string) => {
     if (InputRef?.current) {
@@ -156,6 +156,28 @@ export const MessageInput = ({
     }
   };
 
+  const playSilentAudio = async () => {
+    const audioElement = audioRef.current as HTMLAudioElement | null;
+    if (/safari/i.test(userAgent) && !/chrome|chromium|crios/i.test(userAgent)) {
+      try {
+        if (audioElement) {
+          const audioUrl = "/audio/silent.mp3"
+          audioElement.src = audioUrl;
+          await audioElement.play();
+          await new Promise(resolve => {
+            audioElement.onended = () => {
+              URL.revokeObjectURL(audioUrl); // Clean up the URL
+              resolve(null);
+            };
+          });
+        }
+      } catch (error) {
+        console.log('Audio playback not yet allowed');
+        return;
+      }
+    }
+  };
+
   useEffect(() => {
     if (messageInput.length <= 0) {
       adjustTextareaHeight("min");
@@ -223,47 +245,10 @@ export const MessageInput = ({
 
     return () => {
       if (!isPlaying) {
-        setBarHeights(new Array(38).fill(4));
+        setBarHeights(new Array(38).fill(0));
       }
     };
   }, [audioAnalyser, isPlaying]);
-
-  // useEffect(() => {
-  //   if (!analyserRef || !isPlaying) return;
-
-  //   if (analyserRef.current && isPlaying) {
-  //     const dataArray = new Uint8Array(analyserRef.current?.frequencyBinCount);
-
-  //     const updateHeights = () => {
-  //       analyserRef.current?.getByteFrequencyData(dataArray);
-
-  //       const newHeights = Array(38).fill(0).map((_, i) => {
-  //         const dataIndex = Math.floor((i / 38) * (dataArray.length - 8));
-  //         if (i < 8) {
-  //           return Math.max(4, Math.min(10, (dataArray[dataIndex] / 255) * 20));
-  //         }
-  //         // Last 8 bars - smaller height changes
-  //         else if (i >= 30) {
-  //           return Math.max(4, Math.min(10, (dataArray[dataIndex] / 255) * 20));
-  //         }
-  //         // Middle section - larger height changes
-  //         else {
-  //           return Math.max(4, (dataArray[dataIndex] / 255) * 38);
-  //         }
-  //       });
-  //       setBarHeights(newHeights);
-
-  //       if (isPlaying) {
-  //         requestAnimationFrame(updateHeights);
-  //       }
-  //     };
-
-  //     updateHeights();
-  //   } else {
-  //     setBarHeights(new Array(38).fill(4));
-  //   }
-
-  // }, [isPlaying]);
 
   // To start the yellow glowing effect behid the microphone icon based on the intexity of the voulume
   useEffect(() => {
@@ -353,7 +338,6 @@ export const MessageInput = ({
           <audio ref={audioRef} controls style={{ display: "none" }}>
             Your browser does not support the audio element.
           </audio>
-
           {/* Sound wave animation */}
           <div className="flex items-center gap-1 w-48 h-8">
             {isPlaying && (
@@ -446,10 +430,10 @@ export const MessageInput = ({
           </div>
           <div className="flex">
             <button
-              onClick={() => {
+              onClick={async () => {
+                await playSilentAudio();
                 handleSubmission(messageInput);
                 setMessageInput("");
-                console.log("messageInput", messageInput);
               }}
               disabled={messageInput === "" || inputDisabled}
               type="submit"

@@ -14,8 +14,6 @@ export async function POST(request: NextRequest) {
             voice: "alloy",
             input: response,
         });
-        // console.log(speechFile);
-        // const buffer = Buffer.from(await mp3.arrayBuffer());
 
         return new NextResponse(mp3.body, {
             headers: {

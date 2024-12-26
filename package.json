@@ -24,7 +24,6 @@
     "chart.js": "^4.4.1",
     "chartjs-adapter-moment": "^1.0.1",
     "date-fns": "^3.6.0",
-    "elevenlabs": "^1.50.2",
     "file-saver": "^2.0.5",
     "html2pdf.js": "^0.10.2",
     "i": "^0.3.7",
