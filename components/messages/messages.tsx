@@ -247,7 +247,7 @@ export default function MessagesBody({
           ...newMessages,
           {
             role: "assistant",
-            text: "An error occurred while processing your message. Please try again.",
+            text: "I couldn’t process your response this time. Could you please re-enter it? You can either type it or use the microphone to speak your response again. Apologies for the inconvenience.",
           },
         ];
       });
@@ -322,7 +322,7 @@ export default function MessagesBody({
               ...newMessages,
               {
                 role: "assistant",
-                text: "An error occurred while processing your message. Please try again later.",
+                text: "I couldn’t process your response this time. Could you please re-enter it? You can either type it or use the microphone to speak your response again. Apologies for the inconvenience.",
               },
             ];
           });
