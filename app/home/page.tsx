@@ -14,7 +14,7 @@ export default function Home() {
   const [isOpen, setIsOpen] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   return (
-    <div className="py-8 w-full max-w-[80rem] mx-auto h-full">
+    <div className="pt-4 w-full max-w-[80rem] mx-auto h-full">
       {chatSelected && <WelcomeBanner />}
       {chatSelected && (
         <div className="mx-4 w-full flex flex-end flex-row">
