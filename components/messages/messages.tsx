@@ -51,22 +51,22 @@ export default function MessagesBody({
   const [showAudioPrompt, setShowAudioPrompt] = useState(false);
   const [startMessage, setStartMessage] = useState("");
 
-  useEffect(() => {
-    if (messages.length > 1) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [messages]);
-
   // useEffect(() => {
   //   if (messages.length > 1) {
-  //     // Scroll only inside the iframe context
-  //     const iframeElement = window.frameElement as HTMLIFrameElement | null;
-
-  //     if (iframeElement?.contentWindow) {
-  //       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  //     }
+  //     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   //   }
   // }, [messages]);
+
+  useEffect(() => {
+    if (messages.length > 1) {
+      // Scroll only inside the iframe context
+      const iframeElement = window.frameElement as HTMLIFrameElement | null;
+
+      if (iframeElement?.contentWindow) {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  }, [messages]);
   
   useEffect(() => {
     !chatSelected

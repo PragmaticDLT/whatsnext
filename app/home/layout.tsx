@@ -7,7 +7,7 @@ export default function DefaultLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex max-h-[90dvh] overflow-hidden">
+    <div className="flex max-h-[100dvh] overflow-hidden">
       {/* Sidebar */}
       <Sidebar />
       {/* Content area */}
