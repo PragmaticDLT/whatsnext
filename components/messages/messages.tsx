@@ -569,7 +569,7 @@ export default function MessagesBody({
   }, []);
 
   return (
-    <div className="flex  grow flex-col transition-transform duration-300 ease-in-out md:translate-x-0 w-full">
+    <div className="flex grow flex-col transition-transform duration-300 ease-in-out md:translate-x-0 w-full">
       {showAudioPrompt && (
         <div className="fixed bottom-16 right-4 p-4 bg-white shadow-lg rounded-lg z-50">
           <p>Would you like to enable audio responses?</p>
