@@ -120,6 +120,35 @@ async function createPDF(json: any) {
       yPosition -= 20;
     });
 
+    yPosition -= 30;
+
+    if (supportSection.length > 0) {
+      page1.drawText("PEOPLE THAT CAN HELP AND SUPPORT ME:", {
+        x: 50,
+        y: yPosition,
+        size: 18,
+        font: oswaldFont,
+      });
+      yPosition -= 30;
+
+      for (const item of supportSection) {
+        const supportLines = splitTextIntoLines(
+          `- ${item["Name"]}: ${item["Description"]}`,
+          maxWidth,
+          12
+        );
+        supportLines.forEach((line) => {
+          page1.drawText(line, {
+            x: 50,
+            y: yPosition,
+            size: 12,
+            font: latoFont,
+          });
+          yPosition -= 20;
+        });
+      }
+    }
+
     // Second page
     const page2 = pdfDoc.addPage();
     yPosition = height - 45;
@@ -241,53 +270,6 @@ async function createPDF(json: any) {
         });
 
         yPosition -= 30;
-      }
-    }
-
-    // Third page
-    const page3 = pdfDoc.addPage();
-    yPosition = height - 45;
-
-    page3.drawImage(logoImage, {
-      x: 50,
-      y: height - 20 - logoHeight,
-      width: logoWidth,
-      height: logoHeight,
-    });
-
-    page3.drawText("WHAT'S NEXT PLAN", {
-      x: 50 + logoWidth + 30,
-      y: yPosition,
-      size: 24,
-      font: monoramaFont,
-      color: rgb(0.57, 0.42, 0.96),
-    });
-
-    yPosition -= 45;
-    if (supportSection.length > 0) {
-      page3.drawText("PEOPLE THAT CAN HELP AND SUPPORT ME:", {
-        x: 50,
-        y: yPosition,
-        size: 18,
-        font: oswaldFont,
-      });
-      yPosition -= 30;
-
-      for (const item of supportSection) {
-        const supportLines = splitTextIntoLines(
-          `- ${item["Name"]}: ${item["Description"]}`,
-          maxWidth,
-          12
-        );
-        supportLines.forEach((line) => {
-          page3.drawText(line, {
-            x: 50,
-            y: yPosition,
-            size: 12,
-            font: latoFont,
-          });
-          yPosition -= 20;
-        });
       }
     }
 
