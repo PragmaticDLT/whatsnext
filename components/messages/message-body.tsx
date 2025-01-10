@@ -21,7 +21,7 @@ export const MessageBody = ({
   const { parsedJson, inputDate, specialButtons } = useChatsContext();
   
   return (
-    <div className="h-full grow px-4 py-6 sm:px-6 md:px-5">
+    <div className="h-full grow px-4 py-2 sm:px-6 md:px-5">
       {/* Chat msg */}
       {messages.map((message, index: number) => {
         if (message?.role === "user") {

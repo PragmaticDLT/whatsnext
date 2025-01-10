@@ -300,10 +300,10 @@ export const MessageInput = ({
   }, [isRecording, mediaRecorder]);
   return (
     <div className="sticky bottom-0 w-full ">
-      <div className=" bg-[#c0c0c0] m-auto sm:w-[60%] lg:w-[30%] w-[90%] pt-1 pb-2 rounded-[3px] mb-2 ">
+      <div className=" bg-[#c0c0c0] m-auto sm:w-[60%] lg:w-[30%] w-[90%] pt-1 pb-2 rounded-[3px] mb-1">
         <div className="buttonContainer">
           <div className="button">
-            <object data="/svg/info.svg" width='22px' height='22px'></object>
+            <object data="/svg/info.svg" width='20px' height='20px'></object>
             <div className="tooltip dark:text-indigo-200 bg-indigo-200">
               <small className="text-[#ffa500] flex justify-center">How the Audio Feature and Microphone Input Work</small>
               <ul style={{ margin: 0, paddingLeft: "15px", fontSize: '11.5px', listStyleType: 'lower-alpha' }}>
@@ -366,7 +366,7 @@ export const MessageInput = ({
               </>
             )}
           </div>
-          <div style={style} className="p-2 rounded-full">
+          <div style={style} className="rounded-full">
             {/* Microphone button */}
             <button
               className={`btn ${isRecording ? 'bg-black' : 'bg-[#a0a0a0] hover:bg-[#808080]'} text-white rounded-full w-10 h-10 flex items-center justify-center`}
