@@ -7,7 +7,7 @@ export default function DefaultLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex max-h-[100dvh] overflow-hidden">
+    <div id="scrollable-container" className="flex max-h-[100dvh] overflow-y-auto">
       {/* Sidebar */}
       <Sidebar />
       {/* Content area */}

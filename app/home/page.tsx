@@ -13,6 +13,8 @@ export default function Home() {
   const { chatSelected, clearChat } = useChatsContext();
   const [isOpen, setIsOpen] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+
+
   return (
     <div className="pt-4 pb-2 w-full max-w-[80rem] mx-auto h-full">
       {chatSelected && <WelcomeBanner />}
