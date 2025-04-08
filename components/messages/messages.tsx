@@ -52,29 +52,32 @@ export default function MessagesBody({
   const [startMessage, setStartMessage] = useState("");
 
   useEffect(() => {
-    console.log(messagesEndRef.current);
-    if (messages.length > 1 ) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [messages]);
-
-  useEffect(() => {
     const scrollableContainer = document.getElementById("scrollable-container");
-  
+    // const scrollableContainer = messagesEndRef.current
     if (scrollableContainer) {
       console.log('scroll', scrollableContainer)
       const stopScrollPropagation = (event: WheelEvent) => {
+        console.log("Scroll event propagation stopped");
         event.stopPropagation();
       };
-  
+
       scrollableContainer.addEventListener("wheel", stopScrollPropagation);
-  
+
       return () => {
         scrollableContainer.removeEventListener("wheel", stopScrollPropagation);
       };
     }
   }, []);
   
+  useEffect(() => {
+    console.log(messagesEndRef.current);
+    if (messages.length > 1) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
+
+ 
+
 
   useEffect(() => {
     !chatSelected
@@ -366,9 +369,9 @@ export default function MessagesBody({
   }
 
   const changeAssistant2 = () => {
-    setCurrentQuestionNumber(15);
+    setCurrentQuestionNumber(14);
     setAssistantId(process.env.NEXT_PUBLIC_2_ASSISTANT_ID || "");
-    localStorage.setItem("currentQuestionNumber", "15");
+    localStorage.setItem("currentQuestionNumber", "14");
     localStorage.setItem(
       "assistantId",
       process.env.NEXT_PUBLIC_2_ASSISTANT_ID || ""
@@ -386,6 +389,12 @@ export default function MessagesBody({
   const handleMessageCompleted = async (event) => {
     const messageText = event.data.content[0].text.value;
     extractQuotedTexts(messageText);
+
+    currentQuestionNumber < 13
+    ? checkForLastQuestionNumber(messageText)
+    : currentQuestionNumber == 13
+      ? changeAssistant2()
+      : null;
 
     if (!(messageText?.startsWith("Hey! Hello! Welcome")
       || messageText?.startsWith("We recommend taking a 15 to 20 minute break")
@@ -446,11 +455,6 @@ export default function MessagesBody({
       }
     }
     setInputDisabled(false);
-    currentQuestionNumber < 14
-      ? checkForLastQuestionNumber(messageText)
-      : currentQuestionNumber == 14
-        ? changeAssistant2()
-        : null;
 
     if (
       messageText.includes(
